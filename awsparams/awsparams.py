@@ -18,6 +18,7 @@ import fire
 import boto3
 import sys
 from getpass import getpass
+__VERSION__='0.9.1'
 
 
 def connect_ssm(profile=''):
@@ -230,6 +231,8 @@ def test(verbose=False):
     import doctest
     sys.exit(doctest.testmod(verbose=verbose)[0])
 
+def main():
+    fire.Fire()
 
 if __name__ == '__main__':
-    fire.Fire()
+    main()
