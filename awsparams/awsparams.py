@@ -18,7 +18,7 @@ import fire
 import boto3
 import sys
 from getpass import getpass
-__VERSION__='0.9.1'
+__VERSION__='0.9.2'
 
 
 def connect_ssm(profile=''):
