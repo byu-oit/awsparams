@@ -1,44 +1,46 @@
 # usage
 use with default profile
-`> python params.py ls`
+`> python awsparams.py ls`
 
 ## ls usage
 ls names only
-`> python params.py ls --profile=trn`
+`> python awsparams.py ls --profile=trn`
 
 ls with values no decryption
-`> python params.py ls --profile=trn --values=True`
+`> python awsparams.py ls --profile=trn --values=True`
 
 ls with values and decryption
-`> python params.py ls --profile=trn --values=True --WithDecryption=True`
+`> python awsparams.py ls --profile=trn --values=True --WithDecryption=True`
 
 ls by prefix
-`> python params.py ls --prefix=appname.prd`
+`> python awsparams.py ls --prefix=appname.prd`
 
 ## new usage
 new interactively
-`> python params.py new`
+`> python awsparams.py new`
 
 new semi-interactively
-`> python params.py new appname.prd.username`
+`> python awsparams.py new appname.prd.username`
 
 new non-interactive
-`> python params.py new appname.prd.usrname parameter_value parameter_descripton`
+`> python awsparams.py new appname.prd.usrname parameter_value parameter_descripton`
 
 ## cp usage
 copy a parameter
 `> python params cp appname.prd.username newappname.prd.username`
 
 copy set of parameters with prefix appname.dev. to appname.prd.
-`> python params.py cp appname.dev. appname.prd. --prefix=True`
+`> python awsparams.py cp appname.dev. appname.prd. --prefix=True`
 
 copy set of parameters starting with pattern repometa-generator.prd overwrite existing parameters accross different accounts
-`> python params.py cp repometa-generator.prd --src_profile=dev --dst_profile=trn --prefix=True`
+`> python awsparams.py cp repometa-generator.prd --src_profile=dev --dst_profile=trn --prefix=True`
 
 copy single parameters or list of specific parameters accross different accounts
-`> python params.py cp  appname.dev.username appname.trb.username --src_profile=dev --dst_profile=trn`
+`> python awsparams.py cp  appname.dev.username appname.trb.username --src_profile=dev --dst_profile=trn`
 
 ## mv usage
-rename parameters
-`> python params.py mv --prefix --profile=[default] repometa-generator.prd repometa-generator.stg # this would rename all parameters with this prefix`
-`> python params.py mv --profile=[default] repometa-generator.prd.something repometa-generator.prd.somethingelse # this renames one parameter`
+rename/move a parameter
+`> python awsawsparams.py mv appname.dev.username appname.prd.username`
+
+rename/move all parameters with a prefix changing only the prefix
+`> python awsparams.py mv appname.dev appname.prd --prefix=True`
