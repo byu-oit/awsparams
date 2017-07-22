@@ -11,8 +11,8 @@ AWS-provided UIs.
 
 Installation
 ============
-- Install Python 3.6 with your favorite method.  We recommend apt-get or rpm on linux, homebrew on mac and `<here https://www.python.org/downloads/>`_ on windows.
-- `pip3.6 install awsparams`
+- Install Python 3.6 with your favorite method.  We recommend apt-get or rpm on linux, homebrew on mac and `here <https://www.python.org/downloads/>`_ on windows.
+- ``pip3.6 install awsparams``
 
 Usage
 =====
