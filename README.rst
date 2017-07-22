@@ -9,6 +9,11 @@ similar in functionality to the AWS Console.
 This script is to automate a lot of the manual work currently needed with the existing
 AWS-provided UIs.
 
+Installation
+============
+- Install Python 3.6 with your favorite method.  We recommend apt-get or rpm on linux, homebrew on mac and `<here https://www.python.org/downloads/>`_ on windows.
+- `pip3.6 install awsparams`
+
 Usage
 =====
 
