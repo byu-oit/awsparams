@@ -14,17 +14,19 @@
 # limitations under the License.
 
 
-import fire
+import click
 import boto3
-import sys
 from getpass import getpass
-__VERSION__='0.9.2'
+__VERSION__ = '0.9.3'
+
+
+@click.group()
+@click.version_option(version=__VERSION__)
+def main():
+    pass
 
 
 def connect_ssm(profile=''):
-    """
-    >>> ssm = connect_ssm()
-    """
     if profile:
         session = boto3.Session(profile_name=profile)
         ssm = session.client('ssm')
@@ -38,7 +40,7 @@ def put_parameter(profile, overwrite, parameter):
     if overwrite:
         parameter['Overwrite'] = True
     ssm.put_parameter(**parameter)
-    
+
 
 def remove_parameter(profile, param):
     ssm = connect_ssm(profile)
@@ -72,25 +74,21 @@ def get_all_parameters(profile, pattern=None, simplify=False):
 
 
 def translate_results(parameters):
-    """
-    >>> parms = [{'Name': 'test', 'Description': 'testing'}]
-    >>> translate_results(parms)
-    ['test']
-    """
     return [parm['Name'] for parm in parameters]
-    
 
-def ls(*, profile=None, values=False, with_decryption=False, prefix=None):
+
+@main.command('ls')
+@click.argument('src', default='')
+@click.option('--profile', type=click.STRING, help='profile to run with')
+@click.option('-v', '--values', is_flag=True, help='display values')
+@click.option('--with-decryption', is_flag=True, help='display decrypted values')
+def ls(src='', profile=None, values=False, with_decryption=False):
     """
-    >>> new('testing.testing.testing', '1234', description='This is a test parameter')
-    >>> ls(prefix='testing.testing')
-    testing.testing.testing
-    >>> ls(prefix='testing.testing', values=True)
-    testing.testing.testing: 1234
-    >>> rm('testing.testing.testing', force=True)
-    The testing.testing.testing parameter has been removed
+    List Paramters, optional matching a specific prefix/pattern
     """
-    for parm in get_all_parameters(profile, prefix, simplify=True):
+    if with_decryption and not values:
+        values = True
+    for parm in get_all_parameters(profile, src, simplify=True):
         if values:
             try:
                 ls_values = get_parameter(parm, profile=profile, decryption=with_decryption)
@@ -101,20 +99,19 @@ def ls(*, profile=None, values=False, with_decryption=False, prefix=None):
             print(parm)
 
 
-def cp(src, dst=None, src_profile=None, dst_profile=None, prefix=False, overwrite=False):
+@main.command('cp')
+@click.argument('src')
+@click.argument('dst', default='')
+@click.option('--src_profile', type=click.STRING, default='', help="source profile")
+@click.option('--dst_profile', type=click.STRING, default='', help="destination profile")
+@click.option('--prefix', is_flag=True, help='copy set of parameters based on a prefix')
+@click.option('--overwrite', is_flag=True, help='overwrite existing parameters')
+def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
     """
-    >>> new('testing.testing.testing', '1234', description='This is a test parameter')
-    >>> cp('testing.testing.testing', 'testing.testing.newthing')
-    Copied testing.testing.testing to testing.testing.newthing
-    >>> cp('testing.testing.testing')
-    dst (Destination) is required when not copying to another profile
-    >>> rm('testing.testing.testing', force=True)
-    The testing.testing.testing parameter has been removed
-    >>> rm('testing.testing.newthing', force=True)
-    The testing.testing.newthing parameter has been removed
+    Copy a parameter, optionally across accounts
     """
     # cross account copy without needing dst
-    if src_profile != dst_profile and not dst:
+    if src_profile and dst_profile and src_profile != dst_profile and not dst:
         dst = src
     elif not dst:
         print("dst (Destination) is required when not copying to another profile")
@@ -136,14 +133,14 @@ def cp(src, dst=None, src_profile=None, dst_profile=None, prefix=False, overwrit
             print(f"Copied {src} to {dst}")
 
 
+@main.command('mv')
+@click.argument('src')
+@click.argument('dst')
+@click.option('--prefix', is_flag=True, help="move/rename based on prefix")
+@click.option('--profile', type=click.STRING, help="alternative profile to use")
 def mv(src, dst, prefix=False, profile=None):
     """
-    >>> new('testing.testing.testing', '1234', description='This is a test parameter')
-    >>> mv('testing.testing.testing', 'testing.testing.newthing')
-    Copied testing.testing.testing to testing.testing.newthing
-    The testing.testing.testing parameter has been removed
-    >>> rm('testing.testing.newthing', force=True)
-    The testing.testing.newthing parameter has been removed
+    Move or rename a parameter
     """
     if prefix:
         cp(src, dst, src_profile=profile, dst_profile=profile, prefix=prefix)
@@ -160,14 +157,14 @@ def sanity_check(param, force):
     return sanity_check == 'y'
 
 
+@main.command('rm')
+@click.argument('src')
+@click.option('-f', '--force', is_flag=True, help='force without confirmation')
+@click.option('--prefix', is_flag=True, help='remove/delete based on prefix')
+@click.option('--profile', type=click.STRING, help='alternative profile to use')
 def rm(src, force=False, prefix=False, profile=None):
     """
-    >>> new('testing.testing.testing', '1234', description='This is a test parameter')
-    >>> new('testing.testing.testing2', '1234', description='This is a test parameter')
-    >>> rm('testing.testing.testing', force=True)
-    The testing.testing.testing parameter has been removed
-    >>> rm('testing.testing', force=True, prefix=True)
-    The testing.testing.testing2 parameter has been removed
+    Remove/Delete a parameter
     """
     if prefix:
         params = get_all_parameters(profile, src, True)
@@ -188,51 +185,35 @@ def rm(src, force=False, prefix=False, profile=None):
             print(f"Parameter {src} not found")
 
 
-def new(name=None, value=None, param_type='String', description=None, profile=None, overwrite=False):
+@main.command('new')
+@click.option('--name', type=click.STRING, prompt="Parameter Name", help='parameter name')
+@click.option('--value', type=click.STRING, help='parameter value')
+@click.option('--param_type', type=click.STRING, default='String', help='parameter type one of String(default), StringList, SecureString')
+@click.option('--description', type=click.STRING, default='', help='parameter description text')
+@click.option('--profile', type=click.STRING, help='alternative profile to be used')
+@click.option('--overwrite', is_flag=True, help='overwrite exisiting parameters')
+def new(name=None, value=None, param_type='String', description='', profile=None, overwrite=False):
     """
-    >>> new('testing.testing.testing', '1234', param_type='SecureString', description='This is a test parameter')
-    >>> ls(prefix='testing.testing', values=True, with_decryption=True)
-    testing.testing.testing: 1234
-    >>> rm('testing.testing.testing', force=True)
-    The testing.testing.testing parameter has been removed
+    Create a new parameter
     """
-    if not name:
-        name = input("Parameter Name: ")
-    if not param_type:
-        control = True
-        valid_types = ['String', 'StringList', 'SecureString']
-        while control:
-            param_type = input("Parameter Type: ")
-            if param_type in valid_types:
-                control = False
-            else:
-                print("Type must be one of {}".format(', '.join(valid_types)))
     if not value:
         if param_type == 'SecureString':
             value = getpass(prompt="SecureString: ")
         elif param_type == 'StringList':
-            value = input("Input Values seperated by ','")
+            value = input("Input Values seperated by ',': ")
         elif param_type == 'String':
             value = input('Parameter Value: ')
-    if not description:
-        description = input("Parameter Description: ")
-    
+
     param = {
         'Name': name,
-        'Description': description,
         'Value': value,
         'Type': param_type,
         'Overwrite': overwrite
     }
+    if description:
+        param['Description'] = description
     put_parameter(profile, overwrite, param)
 
-
-def test(verbose=False):
-    import doctest
-    sys.exit(doctest.testmod(verbose=verbose)[0])
-
-def main():
-    fire.Fire()
 
 if __name__ == '__main__':
     main()

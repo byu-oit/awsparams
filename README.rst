@@ -16,6 +16,24 @@ Installation
 
 Usage
 =====
+Usage can be referenced by running ``awsparams --help`` or ``awsparams subcommand --help`` commands::
+
+    Usage: awsparams [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+    --version  Show the version and exit.
+    --help     Show this message and exit.
+
+    Commands:
+    cp   Copy a parameter, optionally across accounts
+    ls   List Paramters, optional matching a specific...
+    mv   Move or rename a parameter
+    new  Create a new parameter
+    rm   Remove/Delete a parameter
+
+
+Examples
+========
 
 ls usage
 --------
@@ -26,15 +44,15 @@ ls names only
 
 ls with values no decryption
 
-``awsparams ls --values=True``
+``awsparams ls --values`` or ``awsparams ls -v``
 
 ls with values and decryption
 
-``awsparams ls --values=True --with-decryption=True``
+``awsparams ls --with-decryption``
 
 ls by prefix
 
-``awsparams ls --prefix=appname.prd``
+``awsparams ls appname.prd``
 
 new usage
 ---------
@@ -45,11 +63,11 @@ new interactively
 
 new semi-interactively
 
-``awsparams new appname.prd.username``
+``awsparams new --name appname.prd.username``
 
 new non-interactive
 
-``awsparams new appname.prd.usrname parameter_value parameter_descripton``
+``awsparams new --name appname.prd.usrname --value parameter_value --description parameter_descripton``
 
 cp usage
 --------
@@ -60,14 +78,14 @@ copy a parameter
 
 copy set of parameters with prefix appname.dev. to appname.prd.
 
-``awsparams cp appname.dev. appname.prd. --prefix=True``
+``awsparams cp appname.dev. appname.prd. --prefix``
 
-copy set of parameters starting with pattern repometa-generator.prd
+copy set of parameters starting with prefix repometa-generator.prd
 overwrite existing parameters accross different accounts
 
 ``awsparams cp repometa-generator.prd --src_profile=dev --dst_profile=trn --prefix=True``
 
-copy single parameters or list of specific parameters accross different
+copy single parameters accross different
 accounts
 
 ``awsparams cp  appname.dev.username appname.trb.username --src_profile=dev --dst_profile=trn``
