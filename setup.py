@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 from awsparams import awsparams
-import subprocess
 from setuptools import setup, find_packages
 
 if not sys.version.startswith('3.6'):
@@ -13,10 +11,12 @@ if not sys.version.startswith('3.6'):
 with open("README.rst") as rm_file:
     long_description = rm_file.read()
 
+
 def get_requirements():
     with open('requirements.txt') as obj:
         lines = [dep for dep in obj.read().split('\n') if dep]
         return lines
+
 
 setup(name='awsparams',
       version=awsparams.__VERSION__,
