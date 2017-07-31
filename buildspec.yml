@@ -7,6 +7,5 @@ phases:
       - pip install pytest
   build:
     commands: 
-      - pytest
   post_build:
     commands:
