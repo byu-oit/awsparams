@@ -1,0 +1,18 @@
+version: 1
+
+name: awsparams
+
+pipelines: 
+  dev:
+    phases:
+    - type: github
+      name: Source
+      owner: byu-oit
+      repo: awsparams
+      branch: pypi-dev
+    - type: codebuild
+      name: Build
+      build_image: python:3.6.1
+    - type: pypi
+      name: pypiDeploy
+      server: https://testpypi.python.org/pypi
