@@ -12,7 +12,7 @@ pipelines:
       branch: pypi-dev
     - type: codebuild
       name: Build
-      build_image: python:3.6.1
+      build_image: python:3.6
     - type: pypi
       name: pypiDeploy
       server: https://test.pypi.org/legacy/
