@@ -15,4 +15,4 @@ pipelines:
       build_image: python:3.6.1
     - type: pypi
       name: pypiDeploy
-      server: https://testpypi.python.org/pypi
+      server: https://test.pypi.org/legacy/
