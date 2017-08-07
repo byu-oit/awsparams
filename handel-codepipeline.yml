@@ -1,6 +1,6 @@
 version: 1
 
-name: awsparams
+name: byuawsparams
 
 pipelines: 
   dev:
@@ -15,4 +15,4 @@ pipelines:
       build_image: python:3.6
     - type: pypi
       name: pypiDeploy
-      server: https://test.pypi.org/legacy/
+      build_image: python:3.6
