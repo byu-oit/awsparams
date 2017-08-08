@@ -3,7 +3,7 @@ version: 1
 name: byuawsparams
 
 pipelines: 
-  dev:
+  prd:
     phases:
     - type: github
       name: Source
@@ -12,7 +12,7 @@ pipelines:
       branch: pypi-dev
     - type: codebuild
       name: Build
-      build_image: python:3.6
+      build_image: aws/codebuild/python:3.5.2
     - type: pypi
       name: pypiDeploy
       build_image: python:3.6
