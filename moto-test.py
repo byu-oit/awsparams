@@ -7,7 +7,7 @@ import os
 @mock_ec2
 @mock_ssm
 def moto_test_describe_parameters():
-    client = boto3.client('ssm', region_name='us-east-1')
+    client = boto3.client('ssm')
 
     client.put_parameter(
         Name='test',
@@ -24,6 +24,7 @@ def moto_test_describe_parameters():
 
 def main():
     print(os.environ)
+    moto_test_describe_parameters()
 
 
 if __name__ == '__main__':
