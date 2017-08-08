@@ -4,6 +4,7 @@ phases:
   pre_build:
     commands:
       - pip install -r requirements-dev.txt
+      - export no_proxy='169.254.169.254'
   build:
     commands:
       - pytest
