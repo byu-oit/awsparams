@@ -1,6 +1,7 @@
 import boto3
 import sure
 from moto import mock_ssm, mock_ec2
+import os
 
 
 @mock_ec2
@@ -22,9 +23,7 @@ def moto_test_describe_parameters():
 
 
 def main():
-    print('Starting test')
-    moto_test_describe_parameters()
-    print('finished')
+    print(os.environment)
 
 
 if __name__ == '__main__':
