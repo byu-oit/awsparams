@@ -122,7 +122,8 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
             put = get_parameter(name=i['Name'], profile=src_profile, cache=params, decryption=True)
             put['Name'] = put['Name'].replace(src, dst)
             put_parameter(dst_profile, overwrite, put)
-            print(f"Copied {i['Name']} to {put['Name']}")
+            print("Copied {} to {}".format(
+                i['Name'], put['Name']))
     else:
         if isinstance(src, str):
             src_param = [src]
@@ -130,7 +131,7 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
             put = get_parameter(name=i, profile=src_profile, decryption=True)
             put['Name'] = dst
             put_parameter(dst_profile, overwrite, put)
-            print(f"Copied {src} to {dst}")
+            print("Copied {} to {}".format(src, dst))
 
 
 @main.command('mv')
