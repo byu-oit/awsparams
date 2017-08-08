@@ -1,8 +1,9 @@
 import boto3
 import sure
-from moto import mock_ssm
+from moto import mock_ssm, mock_ec2
 
 
+@mock_ec2
 @mock_ssm
 def moto_test_describe_parameters():
     client = boto3.client('ssm', region_name='us-east-1')
