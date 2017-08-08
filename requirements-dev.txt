@@ -1,4 +1,5 @@
 click
 boto3
 pytest
+sure
 git+https://github.com/spulec/moto.git
