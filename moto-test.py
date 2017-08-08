@@ -27,4 +27,4 @@ def main():
 
 
 if __name__ == '__main__':
-    moto_test_describe_parameters()
+    main()
