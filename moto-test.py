@@ -23,7 +23,7 @@ def moto_test_describe_parameters():
 
 
 def main():
-    print(os.environment)
+    print(os.environ)
 
 
 if __name__ == '__main__':
