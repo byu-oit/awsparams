@@ -9,7 +9,7 @@ pipelines:
       name: Source
       owner: byu-oit
       repo: awsparams
-      branch: pypi-dev
+      branch: master
     - type: codebuild
       name: Build
       build_image: python:3.6
