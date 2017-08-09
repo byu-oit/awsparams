@@ -1,10 +1,9 @@
 import boto3
 import sure
-from moto import mock_ssm, mock_ec2
+from moto import mock_ssm
 import os
 
 
-@mock_ec2
 @mock_ssm
 def moto_test_describe_parameters():
     # client = boto3.client('ssm', aws_access_key_id="FakeKey", aws_secret_access_key='FakeSecretKey', aws_session_token='FakeSessionToken')
