@@ -8,8 +8,4 @@ dependencies:
 
 test:
   override: 
-<<<<<<< HEAD
    - python -m pytest
-=======
-   - python -m pytest
->>>>>>> master
