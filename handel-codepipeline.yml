@@ -1,0 +1,18 @@
+version: 1
+
+name: byuawsparams
+
+pipelines: 
+  prd:
+    phases:
+    - type: github
+      name: Source
+      owner: byu-oit
+      repo: awsparams
+      branch: master
+    - type: codebuild
+      name: Build
+      build_image: python:3.6
+    - type: pypi
+      name: pypiDeploy
+      build_image: python:3.6

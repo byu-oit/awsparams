@@ -122,7 +122,8 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
             put = get_parameter(name=i['Name'], profile=src_profile, cache=params, decryption=True)
             put['Name'] = put['Name'].replace(src, dst)
             put_parameter(dst_profile, overwrite, put)
-            print(f"Copied {i['Name']} to {put['Name']}")
+            print("Copied {} to {}".format(
+                i['Name'], put['Name']))
     else:
         if isinstance(src, str):
             src_param = [src]
@@ -130,7 +131,7 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
             put = get_parameter(name=i, profile=src_profile, decryption=True)
             put['Name'] = dst
             put_parameter(dst_profile, overwrite, put)
-            print(f"Copied {src} to {dst}")
+            print("Copied {} to {}".format(src, dst))
 
 
 @main.command('mv')
@@ -153,7 +154,7 @@ def mv(src, dst, prefix=False, profile=None):
 def sanity_check(param, force):
     if force:
         return True
-    sanity_check = input(f"Remove {param} y/n ")
+    sanity_check = input("Remove {} y/n ".format(param))
     return sanity_check == 'y'
 
 
@@ -169,20 +170,20 @@ def rm(src, force=False, prefix=False, profile=None):
     if prefix:
         params = get_all_parameters(profile, src, True)
         if len(params) == 0:
-            print(f"No parameters with the {src} prefix found")
+            print("No parameters with the {} prefix found".format(src))
         else:
             for param in params:
                 if sanity_check(param, force):
                     remove_parameter(profile, param)
-                    print(f"The {param} parameter has been removed")
+                    print("The {} parameter has been removed".format(param))
     else:
         param = get_parameter(name=src, profile=profile)
         if 'Name' in param:
             if sanity_check(src, force):
                 remove_parameter(profile, src)
-                print(f"The {src} parameter has been removed")
+                print("The {} parameter has been removed".format(src))
         else:
-            print(f"Parameter {src} not found")
+            print("Parameter {} not found".format(src))
 
 
 @main.command('new')
