@@ -5,7 +5,7 @@ phases:
     commands:
       - pip install -r requirements-dev.txt
       - curl 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > creds.txt
-      - cat creds.txt
+      - echo "[default]\naws_access_key_id = FakeKey\naws_secret_access_key = FakeKey\naws_session_token = FakeKey" > ~/.aws/credentials
   build:
     commands:
       - python moto-test.py
