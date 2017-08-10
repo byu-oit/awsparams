@@ -17,7 +17,7 @@
 import click
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.3'
+__VERSION__ = '0.9.4'
 
 
 @click.group()

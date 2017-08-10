@@ -25,7 +25,7 @@ def test_new_simple(cli_runner):
 
 
 def test_version():
-    assert awsparams.__VERSION__ == '0.9.3'
+    assert awsparams.__VERSION__ == '0.9.4'
 
 
 @mock_ssm
