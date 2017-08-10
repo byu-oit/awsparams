@@ -34,7 +34,8 @@ software:
             aws_account: dev-oit-byu
             relationships:
                 supports:
-                    service: Application Development
+                    service:
+                    - Application Development
     tags:
         data-sensitivity: public
         team: gro:AD-Student Life Applications
