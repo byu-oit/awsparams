@@ -25,7 +25,7 @@ def test_new_simple(cli_runner):
 
 
 def test_version():
-    assert awsparams.__VERSION__ == '0.9.4'
+    assert awsparams.__VERSION__ == '0.9.5'
 
 
 @mock_ssm
@@ -78,3 +78,13 @@ def test_rm(cli_runner):
     cli_runner.invoke(awsparams.new, ['--name', 'testing.testing.testing', '--value', '1234'])
     result = cli_runner.invoke(awsparams.rm, ['testing.testing.testing', '-f'])
     assert result.exit_code == 0
+
+
+@mock_ssm
+def test_set(cli_runner):
+    cli_runner.invoke(awsparams.new, ['--name', 'testing.testing.testing', '--value', '1234'])
+    result = cli_runner.invoke(awsparams.set, ['testing.testing.testing', '4321'])
+    second_result = cli_runner.invoke(awsparams.ls, ['testing.testing.testing', '--values'])
+    assert result.exit_code == 0
+    assert result.output.strip() == "set 'testing.testing.testing' to '4321'"
+    assert second_result.output.strip() == "testing.testing.testing: 4321"
