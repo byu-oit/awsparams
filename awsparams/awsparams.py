@@ -17,7 +17,7 @@
 import click
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.4'
+__VERSION__ = '0.9.5'
 
 
 @click.group()
@@ -50,9 +50,11 @@ def remove_parameter(profile, param):
 # TODO refactor to regular get_parameter + clarity ie line 52 is hard to read
 def get_parameter(name, profile=None, cache=None, decryption=False):
     ssm = connect_ssm(profile)
-    param = next(parm for parm in ssm.get_parameters(Names=[name], WithDecryption=decryption)['Parameters'])
+    param = next(parm for parm in ssm.get_parameters(
+        Names=[name], WithDecryption=decryption)['Parameters'])
     if param.get('Description'):
-        param['Description'] = next((parm['Description'] for parm in cache if parm['Name'] == name)) if cache else next((parm['Description'] for parm in get_all_parameters(profile) if parm['Name'] == name))
+        param['Description'] = next((parm['Description'] for parm in cache if parm['Name'] == name)) if cache else next(
+            (parm['Description'] for parm in get_all_parameters(profile) if parm['Name'] == name))
     return param
 
 
@@ -61,7 +63,8 @@ def get_all_parameters(profile, pattern=None, simplify=False):
     parameter_page = ssm.describe_parameters()
     parameters = parameter_page['Parameters']
     while parameter_page.get('NextToken'):
-        parameter_page = ssm.describe_parameters(NextToken=parameter_page['NextToken'])
+        parameter_page = ssm.describe_parameters(
+            NextToken=parameter_page['NextToken'])
         parameters.extend(parameter_page['Parameters'])
     if pattern and simplify:
         return [param for param in translate_results(parameters) if pattern in param]
@@ -91,7 +94,8 @@ def ls(src='', profile=None, values=False, with_decryption=False):
     for parm in get_all_parameters(profile, src, simplify=True):
         if values:
             try:
-                ls_values = get_parameter(parm, profile=profile, decryption=with_decryption)
+                ls_values = get_parameter(
+                    parm, profile=profile, decryption=with_decryption)
                 print("{}: {}".format(ls_values['Name'], ls_values['Value']))
             except Exception as err:
                 print("Unknown error occured: {}".format(err))
@@ -119,7 +123,8 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
     if prefix:
         params = get_all_parameters(src_profile, src)
         for i in params:
-            put = get_parameter(name=i['Name'], profile=src_profile, cache=params, decryption=True)
+            put = get_parameter(
+                name=i['Name'], profile=src_profile, cache=params, decryption=True)
             put['Name'] = put['Name'].replace(src, dst)
             put_parameter(dst_profile, overwrite, put)
             print("Copied {} to {}".format(
@@ -214,6 +219,20 @@ def new(name=None, value=None, param_type='String', description='', profile=None
     if description:
         param['Description'] = description
     put_parameter(profile, overwrite, param)
+
+
+@main.command('set')
+@click.argument('src')
+@click.argument('value')
+@click.option('--profile', type=click.STRING, default='', help="source profile")
+def set(src=None, value=None, profile=None):
+    """
+    Create a new parameter
+    """
+    put = get_parameter(name=src, profile=profile, decryption=True)
+    put['Value'] = value
+    put_parameter(profile, True, put)
+    print("set '{}' to '{}'".format(src, value))
 
 
 if __name__ == '__main__':
