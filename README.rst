@@ -30,6 +30,7 @@ Usage can be referenced by running ``awsparams --help`` or ``awsparams subcomman
     mv   Move or rename a parameter
     new  Create a new parameter
     rm   Remove/Delete a parameter
+    set  Edit an existing parameter
 
 
 Examples
@@ -100,3 +101,10 @@ rename/move a parameter
 rename/move all parameters with a prefix changing only the prefix
 
 ``awsparams mv appname.dev appname.prd --prefix=True``
+
+set usage
+---------
+
+edit parameter's value
+
+``awsparams set appname.dev.username newusername``

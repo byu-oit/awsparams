@@ -17,7 +17,7 @@
 import click
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.5'
+__VERSION__ = '0.9.6'
 
 
 @click.group()
@@ -227,7 +227,7 @@ def new(name=None, value=None, param_type='String', description='', profile=None
 @click.option('--profile', type=click.STRING, default='', help="source profile")
 def set(src=None, value=None, profile=None):
     """
-    Create a new parameter
+    Edit an existing parameter
     """
     put = get_parameter(name=src, profile=profile, decryption=True)
     put['Value'] = value
