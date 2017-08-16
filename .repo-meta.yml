@@ -36,7 +36,7 @@ software:
             relationships:
                 supports:
                     service:
-                    - Application Development
+                      - Application Development
     tags:
         data-sensitivity: public
         team: gro:AD-Student Life Applications
