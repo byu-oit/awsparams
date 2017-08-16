@@ -32,7 +32,7 @@ software:
     stages:
         production:
             hosting_location: AWS
-            aws_account: dev-oit-byu
+            aws_account: prd-appdev-oit-byu
             relationships:
                 supports:
                     service:
