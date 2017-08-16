@@ -27,6 +27,7 @@ software:
     technologies_used:
       - Python
       - AWS Systems Manager Parameter Store
+      - Handel-Codepipeline
     standard_change_template_id:
     stages:
         production:
