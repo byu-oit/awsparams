@@ -27,15 +27,16 @@ software:
     technologies_used:
       - Python
       - AWS Systems Manager Parameter Store
+      - Handel-Codepipeline
     standard_change_template_id:
     stages:
         production:
             hosting_location: AWS
-            aws_account: dev-oit-byu
+            aws_account: prd-appdev-oit-byu
             relationships:
                 supports:
                     service:
-                    - Application Development
+                      - Application Development
     tags:
         data-sensitivity: public
         team: gro:AD-Student Life Applications
