@@ -30,7 +30,7 @@ setup(name='awsparams',
       install_requires=get_requirements(),
       zip_safe=True,
       entry_points={
-          'console_scripts': ['awsparams=awsparams.awsparams:main']
+          'console_scripts': ['awsparams=awsparams.cli:main']
       },
       classifiers=[
           'Development Status :: 5 - Production/Stable',

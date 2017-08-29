@@ -13,17 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import click
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.6'
-
-
-@click.group()
-@click.version_option(version=__VERSION__)
-def main():
-    pass
+__VERSION__ = '0.9.7'
 
 
 def connect_ssm(profile=''):
@@ -80,12 +72,7 @@ def translate_results(parameters):
     return [parm['Name'] for parm in parameters]
 
 
-@main.command('ls')
-@click.argument('src', default='')
-@click.option('--profile', type=click.STRING, help='profile to run with')
-@click.option('-v', '--values', is_flag=True, help='display values')
-@click.option('--with-decryption', is_flag=True, help='display decrypted values')
-def ls(src='', profile=None, values=False, with_decryption=False):
+def ls_param(src='', profile=None, values=False, with_decryption=False):
     """
     List Paramters, optional matching a specific prefix/pattern
     """
@@ -103,14 +90,7 @@ def ls(src='', profile=None, values=False, with_decryption=False):
             print(parm)
 
 
-@main.command('cp')
-@click.argument('src')
-@click.argument('dst', default='')
-@click.option('--src_profile', type=click.STRING, default='', help="source profile")
-@click.option('--dst_profile', type=click.STRING, default='', help="destination profile")
-@click.option('--prefix', is_flag=True, help='copy set of parameters based on a prefix')
-@click.option('--overwrite', is_flag=True, help='overwrite existing parameters')
-def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
+def cp_param(src, dst, src_profile='', dst_profile='', prefix=False, overwrite=False):
     """
     Copy a parameter, optionally across accounts
     """
@@ -139,21 +119,16 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
             print("Copied {} to {}".format(src, dst))
 
 
-@main.command('mv')
-@click.argument('src')
-@click.argument('dst')
-@click.option('--prefix', is_flag=True, help="move/rename based on prefix")
-@click.option('--profile', type=click.STRING, help="alternative profile to use")
-def mv(src, dst, prefix=False, profile=None):
+def mv_param(src, dst, prefix=False, profile=None):
     """
     Move or rename a parameter
     """
     if prefix:
-        cp(src, dst, src_profile=profile, dst_profile=profile, prefix=prefix)
-        rm(src, force=True, prefix=True, profile=profile)
+        cp_param(src, dst, src_profile=profile, dst_profile=profile, prefix=prefix)
+        rm_param(src, force=True, prefix=True, profile=profile)
     else:
-        cp(src, dst, src_profile=profile, dst_profile=profile)
-        rm(src, force=True, profile=profile)
+        cp_param(src, dst, src_profile=profile, dst_profile=profile)
+        rm_param(src, force=True, profile=profile)
 
 
 def sanity_check(param, force):
@@ -162,13 +137,7 @@ def sanity_check(param, force):
     sanity_check = input("Remove {} y/n ".format(param))
     return sanity_check == 'y'
 
-
-@main.command('rm')
-@click.argument('src')
-@click.option('-f', '--force', is_flag=True, help='force without confirmation')
-@click.option('--prefix', is_flag=True, help='remove/delete based on prefix')
-@click.option('--profile', type=click.STRING, help='alternative profile to use')
-def rm(src, force=False, prefix=False, profile=None):
+def rm_param(src, force=False, prefix=False, profile=None):
     """
     Remove/Delete a parameter
     """
@@ -191,14 +160,7 @@ def rm(src, force=False, prefix=False, profile=None):
             print("Parameter {} not found".format(src))
 
 
-@main.command('new')
-@click.option('--name', type=click.STRING, prompt="Parameter Name", help='parameter name')
-@click.option('--value', type=click.STRING, help='parameter value')
-@click.option('--param_type', type=click.STRING, default='String', help='parameter type one of String(default), StringList, SecureString')
-@click.option('--description', type=click.STRING, default='', help='parameter description text')
-@click.option('--profile', type=click.STRING, help='alternative profile to be used')
-@click.option('--overwrite', is_flag=True, help='overwrite exisiting parameters')
-def new(name=None, value=None, param_type='String', description='', profile=None, overwrite=False):
+def new_param(name, value, param_type='String', description='', profile=None, overwrite=False):
     """
     Create a new parameter
     """
@@ -221,11 +183,7 @@ def new(name=None, value=None, param_type='String', description='', profile=None
     put_parameter(profile, overwrite, param)
 
 
-@main.command('set')
-@click.argument('src')
-@click.argument('value')
-@click.option('--profile', type=click.STRING, default='', help="source profile")
-def set(src=None, value=None, profile=None):
+def set_param(src, value, profile=None):
     """
     Edit an existing parameter
     """
@@ -233,7 +191,3 @@ def set(src=None, value=None, profile=None):
     put['Value'] = value
     put_parameter(profile, True, put)
     print("set '{}' to '{}'".format(src, value))
-
-
-if __name__ == '__main__':
-    main()
