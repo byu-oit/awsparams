@@ -15,7 +15,7 @@
 
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.7'
+__VERSION__ = '0.9.8'
 
 
 def connect_ssm(profile=''):
@@ -39,18 +39,38 @@ def remove_parameter(profile, param):
     ssm.delete_parameter(Name=param)
 
 
-# TODO refactor to regular get_parameter + clarity ie line 52 is hard to read
-def get_parameter(name, profile=None, cache=None, decryption=False):
+def get_parameter_value(name, decryption=False, profile=None):
     ssm = connect_ssm(profile)
-    param = next(parm for parm in ssm.get_parameters(
-        Names=[name], WithDecryption=decryption)['Parameters'])
+    param = ssm.get_parameters(Names=[name], WithDecryption=True)['Parameters'][0]
+    return param['Value']
+
+
+def get_parameter(name, profile=None, values=False, decryption=False):
+    ssm = connect_ssm(profile)
+    _params = ssm.describe_parameters(Filters=[{'Key': 'Name', 'Values': [name]}])['Parameters']
+    assert len(_params) == 1
+    result = build_param_result(_params[0], profile, values, decryption)
+    if result['Name'] != name:
+        return
+    return result
+
+
+def build_param_result(param, profile, values=False, decryption=False):
+    result = {
+        'Name': param['Name'],
+        'Value': get_parameter_value(param['Name'], decryption, profile) if values else None,
+        'Type': param['Type']
+    }
+
     if param.get('Description'):
-        param['Description'] = next((parm['Description'] for parm in cache if parm['Name'] == name)) if cache else next(
-            (parm['Description'] for parm in get_all_parameters(profile) if parm['Name'] == name))
-    return param
+        result['Description'] = param['Description']
+    if param.get('KeyId'):
+        result['KeyId'] = param['KeyId']
+
+    return result
 
 
-def get_all_parameters(profile, pattern=None, simplify=False):
+def get_all_parameters(profile, pattern=None, values=False, decryption=False):
     ssm = connect_ssm(profile)
     parameter_page = ssm.describe_parameters()
     parameters = parameter_page['Parameters']
@@ -58,18 +78,11 @@ def get_all_parameters(profile, pattern=None, simplify=False):
         parameter_page = ssm.describe_parameters(
             NextToken=parameter_page['NextToken'])
         parameters.extend(parameter_page['Parameters'])
-    if pattern and simplify:
-        return [param for param in translate_results(parameters) if pattern in param]
-    elif pattern:
-        return [param for param in parameters if pattern in param['Name']]
-    elif simplify:
-        return translate_results(parameters)
+
+    if pattern:
+        return [build_param_result(param, profile, values, decryption) for param in parameters if pattern in param['Name']]
     else:
-        return parameters
-
-
-def translate_results(parameters):
-    return [parm['Name'] for parm in parameters]
+        return [build_param_result(param, profile, values, decryption) for param in parameters]
 
 
 def ls_param(src='', profile=None, values=False, with_decryption=False):
@@ -78,16 +91,14 @@ def ls_param(src='', profile=None, values=False, with_decryption=False):
     """
     if with_decryption and not values:
         values = True
-    for parm in get_all_parameters(profile, src, simplify=True):
+    for parm in get_all_parameters(profile, src, values, with_decryption):
         if values:
             try:
-                ls_values = get_parameter(
-                    parm, profile=profile, decryption=with_decryption)
-                print("{}: {}".format(ls_values['Name'], ls_values['Value']))
+                print("{}: {}".format(parm['Name'], parm['Value']))
             except Exception as err:
                 print("Unknown error occured: {}".format(err))
         else:
-            print(parm)
+            print(parm['Name'])
 
 
 def cp_param(src, dst, src_profile='', dst_profile='', prefix=False, overwrite=False):
@@ -101,22 +112,24 @@ def cp_param(src, dst, src_profile='', dst_profile='', prefix=False, overwrite=F
         print("dst (Destination) is required when not copying to another profile")
         return
     if prefix:
-        params = get_all_parameters(src_profile, src)
+        params = get_all_parameters(src_profile, src, values=True, decryption=True)
         for i in params:
-            put = get_parameter(
-                name=i['Name'], profile=src_profile, cache=params, decryption=True)
-            put['Name'] = put['Name'].replace(src, dst)
-            put_parameter(dst_profile, overwrite, put)
-            print("Copied {} to {}".format(
-                i['Name'], put['Name']))
+            orignal_name = i['Name']
+            i['Name'] = i['Name'].replace(src, dst)
+            put_parameter(dst_profile, overwrite, i)
+            print("Copied {} to {}".format(orignal_name, i['Name']))
+            return True
     else:
         if isinstance(src, str):
-            src_param = [src]
-        for i in src_param:
-            put = get_parameter(name=i, profile=src_profile, decryption=True)
-            put['Name'] = dst
-            put_parameter(dst_profile, overwrite, put)
+            src_param = get_parameter(src, profile=src_profile, values=True, decryption=True)
+            if not src_param:
+                print("Parameter: {} not found".format(src))
+                return
+
+            src_param['Name'] = dst
+            put_parameter(dst_profile, overwrite, src_param)
             print("Copied {} to {}".format(src, dst))
+            return True
 
 
 def mv_param(src, dst, prefix=False, profile=None):
@@ -124,11 +137,11 @@ def mv_param(src, dst, prefix=False, profile=None):
     Move or rename a parameter
     """
     if prefix:
-        cp_param(src, dst, src_profile=profile, dst_profile=profile, prefix=prefix)
-        rm_param(src, force=True, prefix=True, profile=profile)
+        if cp_param(src, dst, src_profile=profile, dst_profile=profile, prefix=prefix):
+            rm_param(src, force=True, prefix=True, profile=profile)
     else:
-        cp_param(src, dst, src_profile=profile, dst_profile=profile)
-        rm_param(src, force=True, profile=profile)
+        if cp_param(src, dst, src_profile=profile, dst_profile=profile):
+            rm_param(src, force=True, profile=profile)
 
 
 def sanity_check(param, force):
@@ -137,19 +150,20 @@ def sanity_check(param, force):
     sanity_check = input("Remove {} y/n ".format(param))
     return sanity_check == 'y'
 
+
 def rm_param(src, force=False, prefix=False, profile=None):
     """
     Remove/Delete a parameter
     """
     if prefix:
-        params = get_all_parameters(profile, src, True)
+        params = get_all_parameters(profile, src)
         if len(params) == 0:
             print("No parameters with the {} prefix found".format(src))
         else:
             for param in params:
                 if sanity_check(param, force):
-                    remove_parameter(profile, param)
-                    print("The {} parameter has been removed".format(param))
+                    remove_parameter(profile, param['Name'])
+                    print("The {} parameter has been removed".format(param['Name']))
     else:
         param = get_parameter(name=src, profile=profile)
         if 'Name' in param:
@@ -187,7 +201,7 @@ def set_param(src, value, profile=None):
     """
     Edit an existing parameter
     """
-    put = get_parameter(name=src, profile=profile, decryption=True)
+    put = get_parameter(name=src, profile=profile, values=True, decryption=True)
     put['Value'] = value
     put_parameter(profile, True, put)
     print("set '{}' to '{}'".format(src, value))
