@@ -20,7 +20,7 @@ def get_requirements():
 
 setup(name='awsparams',
       version=awsparams.__VERSION__,
-      description="A simple CLI for adding/removing/renaming/copying AWS Param Store Parameters",
+      description="A simple CLI and Library for adding/removing/renaming/copying AWS Param Store Parameters",
       long_description=long_description,
       author='BYU OIT Application Development',
       author_email='it@byu.edu',
