@@ -15,7 +15,7 @@
 
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.8'
+__VERSION__ = '0.9.9'
 
 
 def connect_ssm(profile=''):
@@ -70,7 +70,7 @@ def build_param_result(param, profile, values=False, decryption=False):
     return result
 
 
-def get_all_parameters(profile, pattern=None, values=False, decryption=False):
+def get_all_parameters(profile=None, pattern=None, values=False, decryption=False):
     ssm = connect_ssm(profile)
     parameter_page = ssm.describe_parameters()
     parameters = parameter_page['Parameters']
