@@ -41,7 +41,7 @@ def remove_parameter(profile, param):
 
 def get_parameter_value(name, decryption=False, profile=None):
     ssm = connect_ssm(profile)
-    param = ssm.get_parameters(Names=[name], WithDecryption=True)['Parameters'][0]
+    param = ssm.get_parameters(Names=[name], WithDecryption=decryption)['Parameters'][0]
     return param['Value']
 
 

@@ -74,3 +74,14 @@ def test_set(cli_runner):
     assert result.exit_code == 0
     assert result.output.strip() == "set 'testing.testing.testing' to '4321'"
     assert second_result.output.strip() == "testing.testing.testing: 4321"
+
+
+@mock_ssm
+def test_mv_simple(cli_runner):
+    cli_runner.invoke(cli.new, ['--name', 'testing.testing.testing', '--value', '1234'])
+    result = cli_runner.invoke(cli.mv, ['testing.testing.testing', 'testing1.testing1.testing1'])
+    second_result = cli_runner.invoke(cli.ls, ['testing.testing.testing', '--values'])
+    third_result = cli_runner.invoke(cli.ls, ['testing1.testing1.testing1', '--values'])
+    assert result.exit_code == 0
+    assert second_result.output.strip() == ""
+    assert third_result.output.strip() == "testing1.testing1.testing1: 1234"
