@@ -16,6 +16,25 @@ Installation
 
 Usage
 =====
+As a Library:
+
+.. code-block:: python
+
+    from awsparams.awsparams import get_parameter, get_all_parameters, get_parameter_value
+
+    #get a single parameter
+    param = get_parameter('test1', values=True, decryption=True)
+    # {'Name': 'test1', 'Value': 'test123', 'Type': 'SecureString', 'KeyId': 'alias/aws/ssm'}
+
+    # get multiple parameters with a prefix/pattern
+    params = get_all_parameters(profile=None, pattern="testing.testing.", values=True, decryption=True)
+    # [{'Name': 'testing.testing.testing', 'Value': '1234', 'Type': 'String'}, {'Name': 'testing.testing.testing2', 'Value': '1234', 'Type': 'String'}]
+
+    # get just a parameter value
+    value = get_parameter_value('test1', decryption=True, profile=None)
+    # test123
+
+
 Usage can be referenced by running ``awsparams --help`` or ``awsparams subcommand --help`` commands::
 
     Usage: awsparams [OPTIONS] COMMAND [ARGS]...
