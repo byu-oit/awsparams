@@ -15,7 +15,7 @@
 
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.9'
+__VERSION__ = '0.9.10'
 
 
 def connect_ssm(profile=''):
@@ -118,7 +118,7 @@ def cp_param(src, dst, src_profile='', dst_profile='', prefix=False, overwrite=F
             i['Name'] = i['Name'].replace(src, dst)
             put_parameter(dst_profile, overwrite, i)
             print("Copied {} to {}".format(orignal_name, i['Name']))
-            return True
+        return True
     else:
         if isinstance(src, str):
             src_param = get_parameter(src, profile=src_profile, values=True, decryption=True)
