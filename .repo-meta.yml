@@ -16,13 +16,8 @@ software:
       - ndpete
       - pauldeden
     developed_by_byu: true
-    ddd:
-        business_domain:
-        ubiquitous_language_url:
-        context_map_url:
     links:
         system_documentation_url: https://github.com/byu-oit/awsparams
-        swagger_urls:
     microservice: false
     technologies_used:
       - Python
