@@ -10,7 +10,7 @@ software:
     type: command-line app
     short_description: A simple CLI for adding/removing/renaming/copying AWS Param
         Store Parameters
-    assignment_group: gro:AD-Student Life Applications
+    assignment_group: gro:AD-OIT Tools
     notes:
     maintained_by:
       - ndpete
@@ -34,5 +34,5 @@ software:
                       - Application Development
     tags:
         data-sensitivity: public
-        team: gro:AD-Student Life Applications
+        team: gro:AD-OIT Tools
         app: awsparams
