@@ -1,38 +1,35 @@
-# For full spec reference see https://github.com/byu-oit/repo-meta/blob/master/repo-meta-template.yml 
-# This file was automatically generated. It is used for various integrations like creating and updating Software CIs in the CMDB.
-# You are required to maintain Software CI records in the CMDB for all of the deployable software artifacts you maintain.
-# You can fill in the information here and have the integration do that for you or you can do that yourself manually.
-$schemaver: '2.0'
+$schemaver: 2.0
 repo_url: https://github.com/byu-oit/awsparams
 software:
-  - name: awsparams
+  - assignment_group: 'gro:AD-OIT Tools'
     deploy_to_cmdb: true
-    type: command-line app
-    short_description: A simple CLI for adding/removing/renaming/copying AWS Param
-        Store Parameters
-    assignment_group: gro:AD-OIT Tools
-    notes:
+    developed_by_byu: true
+    links:
+      system_documentation_url: https://github.com/byu-oit/awsparams
     maintained_by:
       - ndpete
       - pauldeden
-    developed_by_byu: true
-    links:
-        system_documentation_url: https://github.com/byu-oit/awsparams
     microservice: false
+    name: awsparams
+    notes:
+    short_description: 'A simple CLI for adding/removing/renaming/copying AWS Param
+      Store Parameters'
+    stages:
+      production:
+        aws_account: prd-appdev-oit-byu
+        hosting_location: AWS
+        relationships:
+          supports:
+            service:
+              - 'Application Development'
+    standard_change_template_id:
+    tags:
+      app: awsparams
+      data-sensitivity: public
+      team: 'gro:AD-OIT Tools'
     technologies_used:
       - Python
-      - AWS Systems Manager Parameter Store
+      - 'AWS Systems Manager Parameter Store'
       - Handel-Codepipeline
-    standard_change_template_id:
-    stages:
-        production:
-            hosting_location: AWS
-            aws_account: prd-appdev-oit-byu
-            relationships:
-                supports:
-                    service:
-                      - Application Development
-    tags:
-        data-sensitivity: public
-        team: gro:AD-OIT Tools
-        app: awsparams
+      - 'AWS CodeBuild'
+    type: 'command-line app'
