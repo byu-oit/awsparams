@@ -32,4 +32,5 @@ software:
       - 'AWS Systems Manager Parameter Store'
       - Handel-Codepipeline
       - 'AWS CodeBuild'
+      - 'AWS CodePipeline'
     type: 'command-line app'
