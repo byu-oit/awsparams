@@ -1,7 +1,7 @@
-$schemaver: 2.0
+$schemaver: '2.0'
 repo_url: https://github.com/byu-oit/awsparams
 software:
-  - assignment_group: 'gro:AD-OIT Tools'
+  - assignment_group: gro:AD-OIT Tools
     deploy_to_cmdb: true
     developed_by_byu: true
     links:
@@ -12,8 +12,8 @@ software:
     microservice: false
     name: awsparams
     notes:
-    short_description: 'A simple CLI for adding/removing/renaming/copying AWS Param
-      Store Parameters'
+    short_description: A simple CLI for adding/removing/renaming/copying AWS Param
+      Store Parameters
     stages:
       production:
         aws_account: prd-appdev-oit-byu
@@ -21,16 +21,17 @@ software:
         relationships:
           supports:
             service:
-              - 'Application Development'
+              - Application Development
     standard_change_template_id:
     tags:
       app: awsparams
       data-sensitivity: public
-      team: 'gro:AD-OIT Tools'
+      team: gro:AD-OIT Tools
     technologies_used:
       - Python
-      - 'AWS Systems Manager Parameter Store'
+      - AWS Systems Manager Parameter Store
       - Handel-Codepipeline
-      - 'AWS CodeBuild'
-      - 'AWS CodePipeline'
-    type: 'command-line app'
+      - AWS CodeBuild
+      - AWS CodePipeline
+      - CircleCI.com
+    type: command-line app
