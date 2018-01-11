@@ -1,4 +1,4 @@
-$schemaver: '2.0'
+$schemaver: 2.1
 repo_url: https://github.com/byu-oit/awsparams
 software:
   - assignment_group: gro:AD-OIT Tools
@@ -22,11 +22,6 @@ software:
           supports:
             service:
               - Application Development
-    standard_change_template_id:
-    tags:
-      app: awsparams
-      data-sensitivity: public
-      team: gro:AD-OIT Tools
     technologies_used:
       - Python
       - AWS Systems Manager Parameter Store
@@ -35,3 +30,5 @@ software:
       - AWS CodePipeline
       - CircleCI.com
     type: command-line app
+    data_sensitivity: public
+    standard_change_template:
