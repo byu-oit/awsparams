@@ -1,0 +1,20 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.6.5-jessie
+    steps:
+      - checkout
+      - run:
+          name: Install Requirements
+          command: pip install --user -r requirements-dev.txt && pip install --user -r requirements.txt
+      - run:
+          name: Run Tests
+          command: python -m pytest -vvv
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
