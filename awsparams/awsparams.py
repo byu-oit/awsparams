@@ -15,7 +15,7 @@
 
 import boto3
 from getpass import getpass
-__VERSION__ = '0.9.11'
+__VERSION__ = '0.9.12'
 
 
 def connect_ssm(profile=''):
