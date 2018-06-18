@@ -72,7 +72,7 @@ def test_set(cli_runner):
     result = cli_runner.invoke(cli.set, ['testing.testing.testing', '4321'])
     second_result = cli_runner.invoke(cli.ls, ['testing.testing.testing', '--values'])
     assert result.exit_code == 0
-    assert result.output.strip() == "set 'testing.testing.testing' to '4321'"
+    assert result.output.strip() == "updated param 'testing.testing.testing' with value"
     assert second_result.output.strip() == "testing.testing.testing: 4321"
 
 

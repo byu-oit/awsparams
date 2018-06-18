@@ -1,4 +1,2 @@
-click
-boto3
 pytest
-git+https://github.com/spulec/moto.git
+moto
