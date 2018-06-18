@@ -201,7 +201,11 @@ def set_param(src, value, profile=None):
     """
     Edit an existing parameter
     """
-    put = get_parameter(name=src, profile=profile, values=True, decryption=True)
-    put['Value'] = value
-    put_parameter(profile, True, put)
-    print("set '{}' to '{}'".format(src, value))
+    existing_value = get_parameter_value(src, decryption=True, profile=profile)
+    if existing_value != value:
+        put = get_parameter(name=src, profile=profile, values=True, decryption=True)
+        put['Value'] = value
+        put_parameter(profile, True, put)
+        print("updated param '{}' with value".format(src))
+    else:
+        print("not updated, param '{}' already contains that value".format(src))
