@@ -7,8 +7,8 @@ jobs:
     steps:
       - checkout
       - run: pip install --user -r requirements-dev.txt
-      - run: pip install --user -r requirements.tx
-      - run: pytest -vvv
+      - run: pip install --user -r requirements.txt
+      - run: python -m pytest -vvv
 
 workflows:
   version: 2
