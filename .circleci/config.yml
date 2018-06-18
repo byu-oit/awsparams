@@ -1,0 +1,17 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.6.5-jessie
+    steps:
+      - checkout
+      - pip install -r requirements-dev.txt
+      - pip install -requirements.tx
+      - pytest -vvv
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
