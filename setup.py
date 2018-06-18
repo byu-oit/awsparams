@@ -8,7 +8,7 @@ if not sys.version.startswith('3.6'):
     sys.stderr.write("awsparams requires python 3.6\n")
     sys.exit(-1)
 
-with open("README.rst") as rm_file:
+with open("README.md") as rm_file:
     long_description = rm_file.read()
 
 
@@ -46,4 +46,4 @@ setup(name='awsparams',
           'Natural Language :: English',
           'Topic :: Utilities'
       ]
-)
+      )
