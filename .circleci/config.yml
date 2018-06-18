@@ -6,8 +6,8 @@ jobs:
       - image: circleci/python:3.6.5-jessie
     steps:
       - checkout
-      - run: pip install -r requirements-dev.txt
-      - run: pip install -r requirements.tx
+      - run: pip install --user -r requirements-dev.txt
+      - run: pip install --user -r requirements.tx
       - run: pytest -vvv
 
 workflows:
