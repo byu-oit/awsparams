@@ -13,7 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import click
-from .awsparams import ls_param, cp_param, mv_param, rm_param, new_param, set_param, __VERSION__
+
+from .awsparams import __VERSION__, AWSParams
+
+
+def sanity_check(param: str, force: bool) -> bool:
+    if force:
+        return True
+    sanity_check = input(f"Remove {param} y/n ")
+    return sanity_check == 'y'
 
 
 @click.group()
@@ -31,7 +39,14 @@ def ls(src='', profile=None, values=False, with_decryption=False):
     """
     List Paramters, optional matching a specific prefix/pattern
     """
-    ls_param(src, profile, values, with_decryption)
+    aws_params = AWSParams(profile)
+    if with_decryption and not values:
+        values = True
+    for parm in aws_params.get_all_parameters(src, values, with_decryption):
+        if values:
+            click.echo(f'{parm["Name"]}: {parm["Value"]}')
+        else:
+            click.echo(parm["Name"])
 
 
 @main.command('cp')
@@ -45,18 +60,53 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
     """
     Copy a parameter, optionally across accounts
     """
-    cp_param(src, dst, src_profile, dst_profile, prefix, overwrite)
+    aws_params = AWSParams(src_profile)
+    # cross account copy without needing dst
+    if dst_profile and src_profile != dst_profile and not dst:
+        dst = src
+    elif not dst:
+        click.echo(
+            "dst (Destination) is required when not copying to another profile"
+        )
+        return
+    if prefix:
+        params = aws_params.get_all_parameters(
+            src, values=True, decryption=True)
+        for i in params:
+            orignal_name = i["Name"]
+            i["Name"] = i["Name"].replace(src, dst)
+            aws_params.put_parameter(overwrite, i, profile=dst_profile)
+            click.echo(f'Copied {orignal_name} to {i["Name"]}')
+        return True
+    else:
+        if isinstance(src, str):
+            src_param = aws_params.get_parameter(
+                src, values=True, decryption=True)
+            if not src_param:
+                click.echo(f"Parameter: {src} not found")
+                return
+            src_param["Name"] = dst
+            aws_params.put_parameter(overwrite, src_param, profile=dst_profile)
+            click.echo(f"Copied {src} to {dst}")
+            return True
+
 
 @main.command('mv')
 @click.argument('src')
 @click.argument('dst')
 @click.option('--prefix', is_flag=True, help="move/rename based on prefix")
 @click.option('--profile', type=click.STRING, help="alternative profile to use")
-def mv(src, dst, prefix=False, profile=None):
+@click.pass_context
+def mv(ctx, src, dst, prefix=False, profile=None):
     """
     Move or rename a parameter
     """
-    mv_param(src, dst, prefix, profile)
+    if prefix:
+        if ctx.invoke(cp, src=src, dst=dst, src_profile=profile, prefix=prefix):
+            ctx.invoke(rm, src=src, force=True, prefix=True, profile=profile)
+    else:
+        if ctx.invoke(cp, src=src, dst=dst, src_profile=profile):
+            ctx.invoke(rm, src=src, force=True, profile=profile)
 
 
 @main.command('rm')
@@ -68,7 +118,26 @@ def rm(src, force=False, prefix=False, profile=None):
     """
     Remove/Delete a parameter
     """
-    rm_param(src, force, prefix, profile)
+    aws_params = AWSParams(profile)
+    if prefix:
+        params = aws_params.get_all_parameters(src)
+        if len(params) == 0:
+            click.echo(f"No parameters with the {src} prefix found")
+        else:
+            for param in params:
+                if sanity_check(param, force):
+                    aws_params.remove_parameter(param["Name"])
+                    click.echo(
+                        f"The {param['Name']} parameter has been removed"
+                    )
+    else:
+        param = aws_params.get_parameter(name=src)
+        if param and "Name" in param:
+            if sanity_check(src, force):
+                aws_params.remove_parameter(src)
+                click.echo(f"The {src} parameter has been removed")
+        else:
+            click.echo(f"Parameter {src} not found")
 
 
 @main.command('new')
@@ -82,7 +151,8 @@ def new(name=None, value=None, param_type='String', description='', profile=None
     """
     Create a new parameter
     """
-    new_param(name, value, param_type, description, profile, overwrite)
+    AWSParams(profile).new_param(
+        name, value, param_type, description, overwrite)
 
 
 @main.command('set')
@@ -93,7 +163,11 @@ def set(src=None, value=None, profile=None):
     """
     Edit an existing parameter
     """
-    set_param(src, value, profile)
+    result = AWSParams(profile).set_param(src, value)
+    if result:
+        click.echo(f"updated param '{src}' with value")
+    else:
+        click.echo(f"not updated, param '{src}' already contains that value")
 
 
 if __name__ == '__main__':
