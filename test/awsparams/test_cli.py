@@ -11,7 +11,8 @@ def cli_runner():
 
 @mock_ssm
 def test_new(cli_runner):
-    result = cli_runner.invoke(cli.new, ['--name', 'testing.testing.testing', '--value', '1234', '--param_type', 'SecureString'])
+    result = cli_runner.invoke(cli.new, ['--name', 'testing.testing.testing', '--value', '1234',
+                                         '--param_type', 'SecureString', '--key', 'alias/test/fookey'])
     cli_runner.invoke(cli.rm, ['testing.testing.testing', '-f'])
     assert result.exit_code == 0
     assert result.output.strip() == ''

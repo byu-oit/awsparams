@@ -75,14 +75,15 @@ def rm(src, force=False, prefix=False, profile=None):
 @click.option('--name', type=click.STRING, prompt="Parameter Name", help='parameter name')
 @click.option('--value', type=click.STRING, help='parameter value')
 @click.option('--param_type', type=click.STRING, default='String', help='parameter type one of String(default), StringList, SecureString')
+@click.option('--key', type=click.STRING, default='', help='KMS Key used to encrypt the parameter')
 @click.option('--description', type=click.STRING, default='', help='parameter description text')
 @click.option('--profile', type=click.STRING, help='alternative profile to be used')
 @click.option('--overwrite', is_flag=True, help='overwrite exisiting parameters')
-def new(name=None, value=None, param_type='String', description='', profile=None, overwrite=False):
+def new(name=None, value=None, param_type='String', key='', description='', profile=None, overwrite=False):
     """
     Create a new parameter
     """
-    new_param(name, value, param_type, description, profile, overwrite)
+    new_param(name, value, param_type, key, description, profile, overwrite)
 
 
 @main.command('set')
