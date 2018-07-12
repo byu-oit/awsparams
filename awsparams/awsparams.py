@@ -174,7 +174,7 @@ def rm_param(src, force=False, prefix=False, profile=None):
             print("Parameter {} not found".format(src))
 
 
-def new_param(name, value, param_type='String', description='', profile=None, overwrite=False):
+def new_param(name, value, param_type='String', key='', description='', profile=None, overwrite=False):
     """
     Create a new parameter
     """
@@ -192,6 +192,8 @@ def new_param(name, value, param_type='String', description='', profile=None, ov
         'Type': param_type,
         'Overwrite': overwrite
     }
+    if key:
+        param['KeyId'] = key
     if description:
         param['Description'] = description
     put_parameter(profile, overwrite, param)
