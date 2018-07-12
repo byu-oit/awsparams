@@ -1,6 +1,7 @@
 import boto3
 import pytest
 from moto import mock_ssm
+from botocore.exceptions import ProfileNotFound
 
 from awsparams.awsparams import AWSParams
 
@@ -28,12 +29,18 @@ def awsparams():
 @mock_ssm
 def test_connect_ssm(awsparams):
     assert awsparams._connect_ssm()
-    assert awsparams._connect_ssm('default')
+    try:
+        assert awsparams._connect_ssm('blahblah')
+    except ProfileNotFound:
+        pass
 
 
-def test_awsparamrs():
+def test_awsparam():
     assert AWSParams()
-    assert AWSParams('default')
+    try:
+        assert AWSParams('default')
+    except ProfileNotFound:
+        pass
 
 
 @mock_ssm
@@ -58,9 +65,12 @@ def test_put_parameter_profile(awsparams):
         'Type': 'String',
         'Value': 'fakevalue'
     }
-    awsparams.put_parameter(False, param, 'default')
-    result = awsparams.get_parameter('fakeparam', values=True)
-    assert result == param
+    try:
+        awsparams.put_parameter(False, param, 'default')
+        result = awsparams.get_parameter('fakeparam', values=True)
+        assert result == param
+    except ProfileNotFound:
+        pytest.skip(msg="No Profiles to test")
 
 
 @mock_ssm
