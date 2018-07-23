@@ -14,7 +14,7 @@
 # limitations under the License.
 import click
 
-from .awsparams import __VERSION__, AWSParams
+from awsparams import __VERSION__, AWSParams
 
 
 def sanity_check(param: str, force: bool) -> bool:
@@ -31,18 +31,18 @@ def main():
 
 
 @main.command('ls')
-@click.argument('src', default='')
+@click.argument('prefix', default='')
 @click.option('--profile', type=click.STRING, help='profile to run with')
 @click.option('-v', '--values', is_flag=True, help='display values')
 @click.option('--with-decryption', is_flag=True, help='display decrypted values')
-def ls(src='', profile=None, values=False, with_decryption=False):
+def ls(prefix='', profile=None, values=False, with_decryption=False):
     """
-    List Paramters, optional matching a specific prefix/pattern
+    List Paramters, optional matching a specific prefix
     """
     aws_params = AWSParams(profile)
     if with_decryption and not values:
         values = True
-    for parm in aws_params.get_all_parameters(src, values, with_decryption):
+    for parm in aws_params.get_all_parameters(prefix=prefix, values=values, decryption=with_decryption):
         if values:
             click.echo(f'{parm["Name"]}: {parm["Value"]}')
         else:
@@ -71,11 +71,11 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
         return
     if prefix:
         params = aws_params.get_all_parameters(
-            src, values=True, decryption=True)
+            prefix=src, values=True, decryption=True)
         for i in params:
             orignal_name = i["Name"]
             i["Name"] = i["Name"].replace(src, dst)
-            aws_params.put_parameter(overwrite, i, profile=dst_profile)
+            aws_params.put_parameter(i, overwrite=overwrite, profile=dst_profile)
             click.echo(f'Copied {orignal_name} to {i["Name"]}')
         return True
     else:
@@ -86,7 +86,7 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
                 click.echo(f"Parameter: {src} not found")
                 return
             src_param["Name"] = dst
-            aws_params.put_parameter(overwrite, src_param, profile=dst_profile)
+            aws_params.put_parameter(src_param, overwrite=overwrite, profile=dst_profile)
             click.echo(f"Copied {src} to {dst}")
             return True
 
@@ -120,7 +120,7 @@ def rm(src, force=False, prefix=False, profile=None):
     """
     aws_params = AWSParams(profile)
     if prefix:
-        params = aws_params.get_all_parameters(src)
+        params = aws_params.get_all_parameters(prefix=src)
         if len(params) == 0:
             click.echo(f"No parameters with the {src} prefix found")
         else:
@@ -153,7 +153,7 @@ def new(name=None, value=None, param_type='String', key='', description='', prof
     Create a new parameter
     """
     AWSParams(profile).new_param(
-        name, value, param_type, key, description, overwrite)
+        name, value, param_type=param_type, key=key, description=description, overwrite=overwrite)
 
 
 @main.command('set')

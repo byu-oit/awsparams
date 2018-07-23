@@ -11,10 +11,8 @@ with the existing AWS-provided UIs.
 
 # Installation
 
-  - Install Python 3.6 with your favorite method. We recommend apt-get
-    or rpm on linux, homebrew on mac and
-    [here](https://www.python.org/downloads/) on windows.
-  - `pip3.6 install awsparams`
+  - AWSParams requires Python 3.6+
+  - Depending on your Python3.6 install either `pip install awsparams` or `pip3 install awsparams`
 
 # Usage
 
@@ -22,15 +20,25 @@ As a
 Library:
 
 ``` sourceCode python
-from awsparams.awsparams import get_parameter, get_all_parameters, get_parameter_value
+from awsparams import AWSParams
+
+# Using default Profile
+aws_params = AWSParams()
+
+# Using a Custome Profile
+aws_params = AWSParams('MyProfile')
 
 #get a single parameter
 param = get_parameter('test1', values=True, decryption=True)
 # {'Name': 'test1', 'Value': 'test123', 'Type': 'SecureString', 'KeyId': 'alias/aws/ssm'}
 
-# get multiple parameters with a prefix/pattern
-params = get_all_parameters(profile=None, pattern="testing.testing.", values=True, decryption=True)
+# get multiple parameters with a prefix
+params = get_all_parameters(prefix="testing.testing.", values=True, decryption=True)
 # [{'Name': 'testing.testing.testing', 'Value': '1234', 'Type': 'String'}, {'Name': 'testing.testing.testing2', 'Value': '1234', 'Type': 'String'}]
+
+# get multiple parameters by path
+params = get_all_parameters(prefix="/testing/testing/", by_path=True, values=True, decryption=True)
+# [{'Name': '/testing/testing/testing', 'Value': '1234', 'Type': 'String'}, {'Name': '/testing/testing/testing2', 'Value': '1234', 'Type': 'String'}]
 
 # get just a parameter value
 value = get_parameter_value('test1', decryption=True, profile=None)

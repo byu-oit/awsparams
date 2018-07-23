@@ -1,2 +1,5 @@
 pytest
 git+https://github.com/ndpete/moto.git
+sphinx
+sphinx-autobuild
+recommonmark

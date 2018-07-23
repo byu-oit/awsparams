@@ -3,7 +3,7 @@ import pytest
 from moto import mock_ssm
 from botocore.exceptions import ProfileNotFound
 
-from awsparams.awsparams import AWSParams
+from awsparams import AWSParams
 
 
 @pytest.fixture
@@ -51,7 +51,7 @@ def test_put_parameter(awsparams):
         'Type': 'String',
         'Value': 'fakevalue'
     }
-    awsparams.put_parameter(False, param)
+    awsparams.put_parameter(param)
     result = ssm.get_parameters(Names=['fakeparam'])['Parameters']
     assert result[0]['Name'] == param['Name']
     assert result[0]['Value'] == param['Value']
@@ -66,7 +66,7 @@ def test_put_parameter_profile(awsparams):
         'Value': 'fakevalue'
     }
     try:
-        awsparams.put_parameter(False, param, 'default')
+        awsparams.put_parameter(param, profile='default')
         result = awsparams.get_parameter('fakeparam', values=True)
         assert result == param
     except ProfileNotFound:
@@ -130,8 +130,42 @@ def test_get_all_parameters(fake_param, awsparams):
 
 
 @mock_ssm
+def test_get_all_parameters_path(awsparams):
+    ssm = boto3.client('ssm')
+    params = [{
+        'Name': '/foo/bar',
+        'Type': 'String',
+        'Value': 'bar'
+    },
+        {
+        'Name': '/foo/baz',
+        'Type': 'String',
+        'Value': 'baz'
+    },
+        {
+        'Name': '/bar/baz',
+        'Type': 'String',
+        'Value': 'baz'
+    }]
+    for param in params:
+        ssm.put_parameter(**param)
+    result = awsparams.get_all_parameters(
+        prefix='/foo/', by_path=True, values=True)
+    assert len(result) == 2
+
+
+@mock_ssm
 def test_new_param(awsparams):
     awsparams.new_param(name='foo', value='bar', param_type='String', description='a test parameter')
     param = awsparams.get_parameter(name='foo', values=True, named_tuple=True)
     assert param.Name == 'foo'
     assert param.Value == 'bar'
+
+
+@mock_ssm
+def test_set_param(fake_param, awsparams):
+    next(fake_param)
+    assert awsparams.set_param('fakeparam', 'foobar')
+    assert 'foobar' == awsparams.get_parameter_value(name='fakeparam')
+    # Don't change if same value
+    assert not awsparams.set_param('fakeparam', 'foobar')

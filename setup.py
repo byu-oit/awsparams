@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from awsparams import awsparams
+import awsparams
 from setuptools import setup, find_packages
 
 if not sys.version.startswith('3.6'):
