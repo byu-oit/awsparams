@@ -47,7 +47,9 @@ def get_parameter_value(name, decryption=False, profile=None):
 
 def get_parameter(name, profile=None, values=False, decryption=False):
     ssm = connect_ssm(profile)
-    _params = ssm.describe_parameters(Filters=[{'Key': 'Name', 'Values': [name]}])['Parameters']
+    _params = ssm.describe_parameters(ParameterFilters=[{'Key': 'Name',
+                                                         'Option': 'Equals',
+                                                         'Values': [name]}])['Parameters']
     assert len(_params) == 1
     result = build_param_result(_params[0], profile, values, decryption)
     if result['Name'] != name:
