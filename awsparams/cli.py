@@ -1,4 +1,3 @@
-#!/usr/bin/env python3.6
 # Copyright 2016 Brigham Young University
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,19 +33,17 @@ def main():
 @click.argument('prefix', default='')
 @click.option('--profile', type=click.STRING, help='profile to run with')
 @click.option('-v', '--values', is_flag=True, help='display values')
-@click.option('--with-decryption', is_flag=True, help='display decrypted values')
-def ls(prefix='', profile=None, values=False, with_decryption=False):
+@click.option('--decryption/--no-decryption', help='by default display decrypted values', default=True)
+def ls(prefix='', profile=None, values=False, decryption=True):
     """
     List Paramters, optional matching a specific prefix
     """
     aws_params = AWSParams(profile)
-    if with_decryption and not values:
-        values = True
-    for parm in aws_params.get_all_parameters(prefix=prefix, values=values, decryption=with_decryption):
+    for parm in aws_params.get_all_parameters(prefix=prefix, values=values, decryption=decryption, trim_name=False):
         if values:
-            click.echo(f'{parm["Name"]}: {parm["Value"]}')
+            click.echo(f'{parm.Name}: {parm.Value}')
         else:
-            click.echo(parm["Name"])
+            click.echo(parm.Name)
 
 
 @main.command('cp')
@@ -70,9 +67,9 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
         )
         return
     if prefix:
-        params = aws_params.get_all_parameters(
-            prefix=src, values=True, decryption=True)
+        params = aws_params.get_all_parameters(prefix=src, trim_name=False)
         for i in params:
+            i = i._asdict()
             orignal_name = i["Name"]
             i["Name"] = i["Name"].replace(src, dst)
             aws_params.put_parameter(i, overwrite=overwrite, profile=dst_profile)
@@ -80,11 +77,11 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
         return True
     else:
         if isinstance(src, str):
-            src_param = aws_params.get_parameter(
-                src, values=True, decryption=True)
+            src_param = aws_params.get_parameter(src)
             if not src_param:
                 click.echo(f"Parameter: {src} not found")
                 return
+            src_param = src_param._asdict()
             src_param["Name"] = dst
             aws_params.put_parameter(src_param, overwrite=overwrite, profile=dst_profile)
             click.echo(f"Copied {src} to {dst}")
@@ -112,7 +109,7 @@ def mv(ctx, src, dst, prefix=False, profile=None):
 @main.command('rm')
 @click.argument('src')
 @click.option('-f', '--force', is_flag=True, help='force without confirmation')
-@click.option('--prefix', is_flag=True, help='remove/delete based on prefix')
+@click.option('--prefix', is_flag=True, help='remove/delete based on prefix/path')
 @click.option('--profile', type=click.STRING, help='alternative profile to use')
 def rm(src, force=False, prefix=False, profile=None):
     """
@@ -120,19 +117,19 @@ def rm(src, force=False, prefix=False, profile=None):
     """
     aws_params = AWSParams(profile)
     if prefix:
-        params = aws_params.get_all_parameters(prefix=src)
+        params = aws_params.get_all_parameters(prefix=src, trim_name=False)
         if len(params) == 0:
             click.echo(f"No parameters with the {src} prefix found")
         else:
             for param in params:
-                if sanity_check(param, force):
-                    aws_params.remove_parameter(param["Name"])
+                if sanity_check(param.Name, force):
+                    aws_params.remove_parameter(param.Name)
                     click.echo(
-                        f"The {param['Name']} parameter has been removed"
+                        f"The {param.Name} parameter has been removed"
                     )
     else:
         param = aws_params.get_parameter(name=src)
-        if param and "Name" in param:
+        if param and param.Name == src:
             if sanity_check(src, force):
                 aws_params.remove_parameter(src)
                 click.echo(f"The {src} parameter has been removed")

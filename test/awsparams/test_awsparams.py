@@ -3,7 +3,7 @@ import pytest
 from moto import mock_ssm
 from botocore.exceptions import ProfileNotFound
 
-from awsparams import AWSParams
+from awsparams import AWSParams, ParamResult
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ def test_put_parameter_profile(awsparams):
     try:
         awsparams.put_parameter(param, profile='default')
         result = awsparams.get_parameter('fakeparam', values=True)
-        assert result == param
+        assert result == ParamResult(**param)
     except ProfileNotFound:
         pytest.skip(msg="No Profiles to test")
 
@@ -100,19 +100,18 @@ def test_get_parameter_value(fake_param, awsparams):
 @mock_ssm
 def test_get_parameter(fake_param, awsparams):
     param = next(fake_param)
-    result = awsparams.get_parameter(param['Name'], values=True)
-    assert result == param
-    result = awsparams.get_parameter('notarealparam', values=True)
+    result = awsparams.get_parameter(param['Name'])
+    assert result == ParamResult(**param)
+    result = awsparams.get_parameter('notarealparam')
     assert result is None
 
 
 @mock_ssm
 def test_build_param_result(fake_param, awsparams):
     param = next(fake_param)
-    result = awsparams.build_param_result(param, values=True)
-    assert result == param
-    tuple_result = awsparams.build_param_result(param, values=True, named_tuple=True)
-    assert tuple_result._asdict() == param
+    result = awsparams.build_param_result(param)
+    assert result == ParamResult(**param)
+    assert result._asdict() == param
 
 
 @mock_ssm
@@ -157,7 +156,7 @@ def test_get_all_parameters_path(awsparams):
 @mock_ssm
 def test_new_param(awsparams):
     awsparams.new_param(name='foo', value='bar', param_type='String', description='a test parameter')
-    param = awsparams.get_parameter(name='foo', values=True, named_tuple=True)
+    param = awsparams.get_parameter(name='foo')
     assert param.Name == 'foo'
     assert param.Value == 'bar'
 

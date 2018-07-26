@@ -62,10 +62,21 @@ def test_ls_values(cli_runner):
     cli_runner.invoke(cli.new, ['--name', 'testing.testing.testing',
                                 '--value', '1234', '--param_type', 'SecureString'])
     result = cli_runner.invoke(
-        cli.ls, ['testing.testing.', '--with-decryption'])
+        cli.ls, ['testing.testing.', '-v'])
     cli_runner.invoke(cli.rm, ['testing.testing.testing', '-f'])
     assert result.exit_code == 0
     assert result.output.strip() == "testing.testing.testing: 1234"
+
+
+@mock_ssm
+def test_ls__without_decrypt(cli_runner):
+    cli_runner.invoke(cli.new, ['--name', 'testing.testing.testing',
+                                '--value', '1234', '--param_type', 'SecureString'])
+    result = cli_runner.invoke(
+        cli.ls, ['testing.testing.', '-v', '--no-decryption'])
+    cli_runner.invoke(cli.rm, ['testing.testing.testing', '-f'])
+    assert result.exit_code == 0
+    assert result.output.strip() == "testing.testing.testing: kms:default:1234"
 
 
 @mock_ssm
@@ -118,6 +129,41 @@ def test_cp_prefix(cli_runner):
 
 
 @mock_ssm
+def test_cp_paths_single_item(cli_runner):
+    ssm = boto3.client('ssm')
+    params = [
+        {
+            'Name': '/testing/testing/foo',
+            'Value': 'bar',
+            'Type': 'String'
+        },
+        {
+            'Name': '/testing/testing/bar',
+            'Value': 'qux',
+            'Type': 'String'
+        },
+        {
+            'Name': 'foo',
+            'Value': 'bar',
+            'Type': 'String'
+        }
+    ]
+    for param in params:
+        ssm.put_parameter(**param)
+
+    result = cli_runner.invoke(
+        cli.cp, ['/testing/testing/foo', '/newpath/foo']
+    )
+    assert result.exit_code == 0
+    all_params = ssm.get_parameters_by_path(Path='/', Recursive=True)
+    assert len(all_params['Parameters']) == 4
+    examples = ssm.get_parameters_by_path(Path='/newpath', Recursive=True)
+    assert len(examples['Parameters']) == 1
+    assert [param['Value'] for param in examples['Parameters']] == [
+        param['Value'] for param in params if '/testing/testing/foo' in param['Name']]
+
+
+@mock_ssm
 def test_cp_fail(cli_runner):
     result = cli_runner.invoke(cli.cp, ['testing.testing.testing'])
     assert result.exit_code == 0
@@ -127,10 +173,13 @@ def test_cp_fail(cli_runner):
 
 @mock_ssm
 def test_rm(cli_runner):
+    ssm = boto3.client('ssm')
     cli_runner.invoke(
         cli.new, ['--name', 'testing.testing.testing', '--value', '1234'])
     result = cli_runner.invoke(cli.rm, ['testing.testing.testing', '-f'])
     assert result.exit_code == 0
+    params = ssm.get_parameters_by_path(Path='/', Recursive=True)
+    assert len(params['Parameters']) == 0
 
 
 @mock_ssm
