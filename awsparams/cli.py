@@ -53,7 +53,8 @@ def ls(prefix='', profile=None, values=False, decryption=True):
 @click.option('--dst_profile', type=click.STRING, default='', help="destination profile")
 @click.option('--prefix', is_flag=True, help='copy set of parameters based on a prefix')
 @click.option('--overwrite', is_flag=True, help='overwrite existing parameters')
-def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
+@click.option('--key', type=click.STRING, default='', help="kms key to use for new copy")
+def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False, key=""):
     """
     Copy a parameter, optionally across accounts
     """
@@ -72,6 +73,8 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
             i = i._asdict()
             orignal_name = i["Name"]
             i["Name"] = i["Name"].replace(src, dst)
+            if key:
+                i['KeyId'] = key
             aws_params.put_parameter(i, overwrite=overwrite, profile=dst_profile)
             click.echo(f'Copied {orignal_name} to {i["Name"]}')
         return True
@@ -83,6 +86,8 @@ def cp(src, dst, src_profile, dst_profile, prefix=False, overwrite=False):
                 return
             src_param = src_param._asdict()
             src_param["Name"] = dst
+            if key:
+                src_param['KeyId'] = key
             aws_params.put_parameter(src_param, overwrite=overwrite, profile=dst_profile)
             click.echo(f"Copied {src} to {dst}")
             return True
