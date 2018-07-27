@@ -265,3 +265,33 @@ def test_mv_prefix(cli_runner):
     assert len(examples['Parameters']) == 2
     assert [param['Value'] for param in examples['Parameters']] == [
         param['Value'] for param in params if '/testing/testing/' in param['Name']]
+
+
+@mock_ssm
+def test_cp_with_key(cli_runner):
+    ssm = boto3.client('ssm')
+    param = {
+        'Name': '/foo/bar',
+        'Value': 'bar',
+        'Type': 'SecureString'
+    }
+    ssm.put_parameter(**param)
+    result = cli_runner.invoke(
+        cli.cp, ['/foo/bar', '/bar/foo', '--key', 'somekmskey']
+    )
+    assert result.exit_code == 0
+    assert result.output.strip() == 'Copied /foo/bar to /bar/foo'
+    response = ssm.get_parameter(Name='/bar/foo')
+    assert response['Parameter']['Value'] == f'kms:somekmskey:{param["Value"]}'
+
+
+@mock_ssm
+def test_new_with_key(cli_runner):
+    ssm = boto3.client('ssm')
+    result = cli_runner.invoke(
+        cli.new, ['--name', '/foo/bar', '--value', 'bar', '--param_type', 'SecureString', '--key', 'somekmskey']
+    )
+
+    assert result.exit_code == 0
+    param = ssm.get_parameter(Name='/foo/bar')
+    assert param['Parameter'].get('Value') == 'kms:somekmskey:bar'
