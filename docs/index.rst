@@ -6,14 +6,6 @@
 Welcome to AWSParams's documentation!
 =====================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-   
-   AwsParams/awsparams
-   AwsParams/paramresult
-
-
 Note
 ====
 
@@ -88,7 +80,7 @@ Library:
 For more detailed examples of usage as a library see the cli
 implementation `here`_.
 
-For full class reference see: :ref:`here <awsparams>`.
+For full library reference see: :ref:`here <awsparams>`.
 
 CLI application:
 ----------------
@@ -112,22 +104,19 @@ Usage can be referenced by running ``awsparams --help`` or
    rm   Remove/Delete a parameter
    set  Edit an existing parameter
 
-Command Examples
-================
-
-ls usage
---------
-
-ls names only: ``awsparams ls``
-
-ls with values no decryption: ``awsparams ls --values`` or
-``awsparams ls -v``
-
-ls with values and decryption: ``awsparams ls --with-decryption``
-
-ls by prefix: \`awsparams ls appn
+More examples :ref:`here <cli>`
 
 .. _here: https://github.com/byu-oit/awsparams/blob/master/awsparams/cli.py
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Contents:
+   
+   CLI/cli
+   AwsParams/awsparams
+   AwsParams/paramresult
+
 
 
 Indices and tables
