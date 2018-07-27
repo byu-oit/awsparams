@@ -14,6 +14,9 @@ functionality to the AWS Console.
 This script is to automate a lot of the manual work currently needed
 with the existing AWS-provided UIs.
 
+# Docs
+Full documentation can be found here: https://awsparams.readthedocs.io/en/latest/
+
 # Installation
 
   - AWSParams requires Python 3.6+
