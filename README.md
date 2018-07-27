@@ -1,3 +1,8 @@
+# Note
+Version 1 of this library is drastically different than previous versions.
+The CLI Application hasn't changed but the library it uses has.
+Please pay extra attention to the examples below or look at the underlying class for more information.
+
 # Why this script?
 
 The current (Jul 2017) AWS Console for the Systems Manager Parameter
@@ -9,34 +14,57 @@ functionality to the AWS Console.
 This script is to automate a lot of the manual work currently needed
 with the existing AWS-provided UIs.
 
+# Docs
+Full documentation can be found here: https://awsparams.readthedocs.io/en/latest/
+
 # Installation
 
-  - Install Python 3.6 with your favorite method. We recommend apt-get
-    or rpm on linux, homebrew on mac and
-    [here](https://www.python.org/downloads/) on windows.
-  - `pip3.6 install awsparams`
+  - AWSParams requires Python 3.6+
+  - Depending on your Python3.6 install either `pip install awsparams` or `pip3 install awsparams`
 
 # Usage
+## Library:
 
-As a
-Library:
+```python
+from awsparams import AWSParams
+ 
+# Using default Profile
+aws_params = AWSParams()
 
-``` sourceCode python
-from awsparams.awsparams import get_parameter, get_all_parameters, get_parameter_value
+# Using a Custome Profile
+aws_params = AWSParams('MyProfile')
 
 #get a single parameter
-param = get_parameter('test1', values=True, decryption=True)
-# {'Name': 'test1', 'Value': 'test123', 'Type': 'SecureString', 'KeyId': 'alias/aws/ssm'}
+param = get_parameter('test1')
+# ParamResult(Name='test1', Value='test123', Type='SecureString')
 
-# get multiple parameters with a prefix/pattern
-params = get_all_parameters(profile=None, pattern="testing.testing.", values=True, decryption=True)
-# [{'Name': 'testing.testing.testing', 'Value': '1234', 'Type': 'String'}, {'Name': 'testing.testing.testing2', 'Value': '1234', 'Type': 'String'}]
+#ParamResult is a named tuple with properties Name, Value, Type
+param.Name # 'test1'
+param.Value # 'test123'
+param.Type # 'SecureString'
+
+# get multiple parameters with a prefix
+params = get_all_parameters(prefix="testing.testing.")
+# [ParamResult(Name='testing', Value='1234', Type='String'),
+#  ParamResult(Name='testing2', Value='1234', Type='String')]
+
+# get multiple parameters by path
+params = get_all_parameters(prefix="/testing/testing/", by_path=True)
+# [ParamResult(Name='testing', Value='1234', Type='String'),
+#  ParamResult(Name='testing2', Value='1234', Type='String')]
+
+# get multiple parameters by path
+params = get_all_parameters(prefix="/testing/testing/", by_path=True, trim_name=False)
+# [ParamResult(Name='/testing/testing/testing', Value='1234', Type='String'),
+#  ParamResult(Name='/testing/testing/testing2', Value='1234', Type='String')]
 
 # get just a parameter value
-value = get_parameter_value('test1', decryption=True, profile=None)
+value = get_parameter_value('test1')
 # test123
 ```
+For more detailed examples of usage as a library see the cli implementation [here](https://github.com/byu-oit/awsparams/blob/master/awsparams/cli.py).
 
+## CLI application:
 Usage can be referenced by running `awsparams --help` or `awsparams
 subcommand --help` commands:
 
@@ -54,7 +82,7 @@ subcommand --help` commands:
     rm   Remove/Delete a parameter
     set  Edit an existing parameter
 
-# Examples
+# Command Examples
 
 ## ls usage
 
