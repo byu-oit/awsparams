@@ -16,7 +16,7 @@ from typing import List, NamedTuple, Union
 
 import boto3
 
-__VERSION__ = "1.0.0"
+__VERSION__ = "1.0.1"
 
 
 class ParamResult(NamedTuple):
@@ -58,7 +58,7 @@ class AWSParams(object):
     def _connect_ssm(self, profile: str=""):
         if profile:
             session = boto3.Session(
-                profile_name=profile, region_name='us-west-2')
+                profile_name=profile)
             ssm = session.client("ssm")
         else:
             ssm = boto3.client("ssm")
