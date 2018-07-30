@@ -149,7 +149,7 @@ def test_get_all_parameters_path(awsparams):
     for param in params:
         ssm.put_parameter(**param)
     result = awsparams.get_all_parameters(
-        prefix='/foo/', by_path=True, values=True)
+        prefix='/foo/', values=True)
     assert len(result) == 2
 
 
