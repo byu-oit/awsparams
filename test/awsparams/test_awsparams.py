@@ -124,7 +124,7 @@ def test_get_all_parameters(fake_param, awsparams):
         'Value': 'fakevalue2'
     }
     ssm.put_parameter(**param2)
-    result = awsparams.get_all_parameters(values=True)
+    result = awsparams.get_all_parameters()
     assert len(result) == 2
 
 
@@ -149,7 +149,32 @@ def test_get_all_parameters_path(awsparams):
     for param in params:
         ssm.put_parameter(**param)
     result = awsparams.get_all_parameters(
-        prefix='/foo/', by_path=True, values=True)
+        prefix='/foo/', values=True)
+    assert len(result) == 2
+
+
+@mock_ssm
+def test_get_all_parameters_prefix(awsparams):
+    ssm = boto3.client('ssm')
+    params = [{
+        'Name': 'foo.bar',
+        'Type': 'String',
+        'Value': 'bar'
+    },
+        {
+        'Name': 'foo.baz',
+        'Type': 'String',
+        'Value': 'baz'
+    },
+        {
+        'Name': 'bar.baz',
+        'Type': 'String',
+        'Value': 'baz'
+    }]
+    for param in params:
+        ssm.put_parameter(**param)
+    result = awsparams.get_all_parameters(
+        prefix='foo.')
     assert len(result) == 2
 
 

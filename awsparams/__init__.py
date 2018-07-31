@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 
 from typing import List, NamedTuple, Union
 
 import boto3
 
-__VERSION__ = "1.0.1"
+__VERSION__ = "1.1.0"
 
 
 class ParamResult(NamedTuple):
@@ -63,6 +64,60 @@ class AWSParams(object):
         else:
             ssm = boto3.client("ssm")
         return ssm
+
+    def _grouper(self, n, iterable):
+        it = iter(iterable)
+        while True:
+            chunk = list(itertools.islice(it, n))
+            if not chunk:
+                return
+            yield chunk
+
+    def _get_all_by_path(self, path, values, decryption, trim):
+        parameters = []
+        paginator = self.ssm.get_paginator('get_parameters_by_path')
+        page_iterator = paginator.paginate(
+            Path=path, Recursive=True, WithDecryption=decryption)
+        for page in page_iterator:
+            parameters.extend(
+                [self.build_param_result(param, values=values, prefix=trim)
+                    for param in page['Parameters']]
+            )
+        return parameters
+
+    def _get_all_prefix(self, prefix, values, decryption, trim):
+        parameters = []
+        paginator = self.ssm.get_paginator('describe_parameters')
+        if prefix:
+            filters = [{
+                'Key': 'Name',
+                'Option': 'BeginsWith',
+                'Values': [prefix]
+            }]
+            page_iterator = paginator.paginate(ParameterFilters=filters)
+        else:
+            page_iterator = paginator.paginate()
+
+        for page in page_iterator:
+            page_params = []
+            for param in page['Parameters']:
+                if prefix in param['Name']:
+                    page_params.append({
+                        "Name": param["Name"],
+                        "Type": param["Type"],
+                        "Value": None
+                    })
+            parameters.extend(page_params)
+
+        if values:
+            params = []
+            for param_list in self._grouper(10, parameters):
+                name_list = [param['Name'] for param in param_list]
+                raw_parameters = self.ssm.get_parameters(Names=name_list, WithDecryption=decryption)
+                params.extend(self.build_param_result(param, values=values, prefix=trim) for param in raw_parameters['Parameters'])
+            return params
+        else:
+            return [self.build_param_result(param, values=values, prefix=trim) for param in parameters]
 
     def put_parameter(self, parameter: dict, *, overwrite: bool=False, profile: str=""):
         """Put a Parameter
@@ -146,12 +201,14 @@ class AWSParams(object):
         }
         return ParamResult(**result)
 
-    def get_all_parameters(self, *, prefix: str='', by_path: bool=False, values: bool=True, decryption: bool=True, trim_name: bool=True) -> List[ParamResult]:
+    def get_all_parameters(self, *, prefix: str='', values: bool=True, decryption: bool=True, trim_name: bool=True) -> List[ParamResult]:
         """Get all parameters Optionally by prefix or path
+
+        If prefix starts with a / then A Parameter path is assumed and the calls to aws
+        will use path api's which are more performant than traversing all parameters
 
         Args:
             prefix (str, optional): Prefix to filter parameters on
-            by_path (bool, optional): Flag when specified prefix is a Path defaults False
             values (bool, optional): Flag toggle values defaults True
             decryption (bool, optional): Flag to toggle decryption defaults True
             trim_name (bool, optional): Flag to toggle name trimming on results defaults True
@@ -160,24 +217,12 @@ class AWSParams(object):
             List[ParamResult]: List of Parameter Results
 
         """
+        path = True if prefix[:1] == '/' else False
         trim = prefix if prefix and trim_name else ""
-        path = prefix if by_path else '/'
-        parameters = []
-        paginator = self.ssm.get_paginator('get_parameters_by_path')
-        page_iterator = paginator.paginate(
-            Path=path, Recursive=True, WithDecryption=decryption)
-        for page in page_iterator:
-            if prefix and not by_path:
-                parameters.extend(
-                    [self.build_param_result(param, values=values, prefix=trim)
-                     for param in page['Parameters'] if prefix in param['Name']]
-                )
-            else:
-                parameters.extend(
-                    [self.build_param_result(param, values=values, prefix=trim)
-                     for param in page['Parameters']]
-                )
-        return parameters
+        if path:
+            return self._get_all_by_path(prefix, values, decryption, trim)
+        else:
+            return self._get_all_prefix(prefix, values, decryption, trim)
 
     def new_param(self, name: str, value: str, *, param_type: str="String", key: str="", description: str="", overwrite: bool=False):
         """
