@@ -39,6 +39,8 @@ def ls(prefix='', profile=None, values=False, decryption=True):
     List Paramters, optional matching a specific prefix
     """
     aws_params = AWSParams(profile)
+    if not values:
+        decryption = False
     for parm in aws_params.get_all_parameters(prefix=prefix, values=values, decryption=decryption, trim_name=False):
         if values:
             click.echo(f'{parm.Name}: {parm.Value}')

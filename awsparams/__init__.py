@@ -86,7 +86,6 @@ class AWSParams(object):
         return parameters
 
     def _get_all_prefix(self, prefix, values, decryption, trim):
-        names = []
         parameters = []
         paginator = self.ssm.get_paginator('describe_parameters')
         if prefix:
@@ -100,12 +99,25 @@ class AWSParams(object):
             page_iterator = paginator.paginate()
 
         for page in page_iterator:
-            names.extend([param['Name'] for param in page['Parameters'] if prefix in param['Name']])
+            page_params = []
+            for param in page['Parameters']:
+                if prefix in param['Name']:
+                    page_params.append({
+                        "Name": param["Name"],
+                        "Type": param["Type"],
+                        "Value": None
+                    })
+            parameters.extend(page_params)
 
-        for name_list in self._grouper(10, names):
-            raw_parameters = self.ssm.get_parameters(Names=name_list, WithDecryption=decryption)
-            parameters.extend(self.build_param_result(param, values=values, prefix=trim) for param in raw_parameters['Parameters'])
-        return parameters
+        if values:
+            params = []
+            for param_list in self._grouper(10, parameters):
+                name_list = [param['Name'] for param in param_list]
+                raw_parameters = self.ssm.get_parameters(Names=name_list, WithDecryption=decryption)
+                params.extend(self.build_param_result(param, values=values, prefix=trim) for param in raw_parameters['Parameters'])
+            return params
+        else:
+            return [self.build_param_result(param, values=values, prefix=trim) for param in parameters]
 
     def put_parameter(self, parameter: dict, *, overwrite: bool=False, profile: str=""):
         """Put a Parameter
