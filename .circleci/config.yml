@@ -3,15 +3,15 @@ version: 2
 jobs:
   test:
     docker:
-      - image: circleci/python:3.6.5-jessie
+      - image: circleci/python:3.8.0
     steps:
       - checkout
       - run:
           name: Install Requirements
-          command: pip install --user -r requirements-dev.txt && pip install --user -r requirements.txt
+          command: python -m pip install poetry && poetry install
       - run:
           name: Run Tests
-          command: python -m pytest -vvv
+          command: poetry run pytest -vvv
 
 workflows:
   version: 2
