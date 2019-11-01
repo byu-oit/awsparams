@@ -18,6 +18,11 @@ jobs:
         python -m pip install poetry
         poetry install
     - name: Run Tests
+      env:
+        AWS_ACCESS_KEY_ID: testing
+        AWS_SECRET_ACCESS_KEY: testing
+        AWS_SECURITY_TOKEN: testing
+        AWS_SESSION_TOKEN: testing
       run: |
         poetry run pytest -vvv
     - name: Build and publish
