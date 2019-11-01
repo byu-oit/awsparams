@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
+import pkg_resources
 
 from typing import List, NamedTuple, Union
 
 import boto3
 
-__VERSION__ = "1.1.0"
+__VERSION__ = pkg_resources.get_distribution("awsparams").version
 
 
 class ParamResult(NamedTuple):
