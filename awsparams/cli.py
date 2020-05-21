@@ -20,7 +20,7 @@ def sanity_check(param: str, force: bool) -> bool:
     if force:
         return True
     sanity_check = input(f"Remove {param} y/n ")
-    return sanity_check == 'y'
+    return sanity_check == "y"
 
 
 @click.group()
@@ -29,37 +29,61 @@ def main():
     pass
 
 
-@main.command('ls')
-@click.argument('prefix', default='')
-@click.option('--profile', type=click.STRING, help='profile to run with')
-@click.option('--region', type=click.STRING, help='optional region to use')
-@click.option('-v', '--values', is_flag=True, help='display values')
-@click.option('--decryption/--no-decryption', help='by default display decrypted values', default=True)
-def ls(prefix='', profile="", region="", values=False, decryption=True):
+@main.command("ls")
+@click.argument("prefix", default="")
+@click.option("--profile", type=click.STRING, help="profile to run with")
+@click.option("--region", type=click.STRING, help="optional region to use")
+@click.option("-v", "--values", is_flag=True, help="display values")
+@click.option(
+    "--decryption/--no-decryption",
+    help="by default display decrypted values",
+    default=True,
+)
+def ls(prefix="", profile="", region="", values=False, decryption=True):
     """
     List Paramters, optional matching a specific prefix
     """
     aws_params = AWSParams(profile, region)
     if not values:
         decryption = False
-    for parm in aws_params.get_all_parameters(prefix=prefix, values=values, decryption=decryption, trim_name=False):
+    for parm in aws_params.get_all_parameters(
+        prefix=prefix, values=values, decryption=decryption, trim_name=False
+    ):
         if values:
-            click.echo(f'{parm.Name}: {parm.Value}')
+            click.echo(f"{parm.Name}: {parm.Value}")
         else:
             click.echo(parm.Name)
 
 
-@main.command('cp')
-@click.argument('src')
-@click.argument('dst', default='')
-@click.option('--src_profile', type=click.STRING, default='', help="source profile")
-@click.option('--src_region', type=click.STRING, default='', help="optional source region")
-@click.option('--dst_profile', type=click.STRING, default='', help="destination profile")
-@click.option('--dst_region', type=click.STRING, default='', help="optional destination region")
-@click.option('--prefix', is_flag=True, help='copy set of parameters based on a prefix')
-@click.option('--overwrite', is_flag=True, help='overwrite existing parameters')
-@click.option('--key', type=click.STRING, default='', help="kms key to use for new copy")
-def cp(src, dst, src_profile, src_region, dst_profile, dst_region, prefix=False, overwrite=False, key=""):
+@main.command("cp")
+@click.argument("src")
+@click.argument("dst", default="")
+@click.option("--src_profile", type=click.STRING, default="", help="source profile")
+@click.option(
+    "--src_region", type=click.STRING, default="", help="optional source region"
+)
+@click.option(
+    "--dst_profile", type=click.STRING, default="", help="destination profile"
+)
+@click.option(
+    "--dst_region", type=click.STRING, default="", help="optional destination region"
+)
+@click.option("--prefix", is_flag=True, help="copy set of parameters based on a prefix")
+@click.option("--overwrite", is_flag=True, help="overwrite existing parameters")
+@click.option(
+    "--key", type=click.STRING, default="", help="kms key to use for new copy"
+)
+def cp(
+    src,
+    dst,
+    src_profile,
+    src_region,
+    dst_profile,
+    dst_region,
+    prefix=False,
+    overwrite=False,
+    key="",
+):
     """
     Copy a parameter, optionally across accounts
     """
@@ -68,9 +92,7 @@ def cp(src, dst, src_profile, src_region, dst_profile, dst_region, prefix=False,
     if dst_profile and src_profile != dst_profile and not dst:
         dst = src
     elif not dst:
-        click.echo(
-            "dst (Destination) is required when not copying to another profile"
-        )
+        click.echo("dst (Destination) is required when not copying to another profile")
         return
     if prefix:
         params = aws_params.get_all_parameters(prefix=src, trim_name=False)
@@ -79,8 +101,10 @@ def cp(src, dst, src_profile, src_region, dst_profile, dst_region, prefix=False,
             orignal_name = i["Name"]
             i["Name"] = i["Name"].replace(src, dst)
             if key:
-                i['KeyId'] = key
-            aws_params.put_parameter(i, overwrite=overwrite, profile=dst_profile, region=dst_region)
+                i["KeyId"] = key
+            aws_params.put_parameter(
+                i, overwrite=overwrite, profile=dst_profile, region=dst_region
+            )
             click.echo(f'Copied {orignal_name} to {i["Name"]}')
         return True
     else:
@@ -92,37 +116,43 @@ def cp(src, dst, src_profile, src_region, dst_profile, dst_region, prefix=False,
             src_param = src_param._asdict()
             src_param["Name"] = dst
             if key:
-                src_param['KeyId'] = key
-            aws_params.put_parameter(src_param, overwrite=overwrite, profile=dst_profile, region=dst_region)
+                src_param["KeyId"] = key
+            aws_params.put_parameter(
+                src_param, overwrite=overwrite, profile=dst_profile, region=dst_region
+            )
             click.echo(f"Copied {src} to {dst}")
             return True
 
 
-@main.command('mv')
-@click.argument('src')
-@click.argument('dst')
-@click.option('--prefix', is_flag=True, help="move/rename based on prefix")
-@click.option('--profile', type=click.STRING, help="alternative profile to use")
-@click.option('--region', type=click.STRING, help="alternative region to use")
+@main.command("mv")
+@click.argument("src")
+@click.argument("dst")
+@click.option("--prefix", is_flag=True, help="move/rename based on prefix")
+@click.option("--profile", type=click.STRING, help="alternative profile to use")
+@click.option("--region", type=click.STRING, help="alternative region to use")
 @click.pass_context
 def mv(ctx, src, dst, prefix=False, profile="", region=""):
     """
     Move or rename a parameter
     """
     if prefix:
-        if ctx.invoke(cp, src=src, dst=dst, src_profile=profile, prefix=prefix, src_region=region):
-            ctx.invoke(rm, src=src, force=True, prefix=True, profile=profile, region=region)
+        if ctx.invoke(
+            cp, src=src, dst=dst, src_profile=profile, prefix=prefix, src_region=region
+        ):
+            ctx.invoke(
+                rm, src=src, force=True, prefix=True, profile=profile, region=region
+            )
     else:
         if ctx.invoke(cp, src=src, dst=dst, src_profile=profile, src_region=region):
             ctx.invoke(rm, src=src, force=True, profile=profile, region=region)
 
 
-@main.command('rm')
-@click.argument('src')
-@click.option('-f', '--force', is_flag=True, help='force without confirmation')
-@click.option('--prefix', is_flag=True, help='remove/delete based on prefix/path')
-@click.option('--profile', type=click.STRING, help='alternative profile to use')
-@click.option('--region', type=click.STRING, help='alternative region to use')
+@main.command("rm")
+@click.argument("src")
+@click.option("-f", "--force", is_flag=True, help="force without confirmation")
+@click.option("--prefix", is_flag=True, help="remove/delete based on prefix/path")
+@click.option("--profile", type=click.STRING, help="alternative profile to use")
+@click.option("--region", type=click.STRING, help="alternative region to use")
 def rm(src, force=False, prefix=False, profile="", region=""):
     """
     Remove/Delete a parameter
@@ -136,9 +166,7 @@ def rm(src, force=False, prefix=False, profile="", region=""):
             for param in params:
                 if sanity_check(param.Name, force):
                     aws_params.remove_parameter(param.Name)
-                    click.echo(
-                        f"The {param.Name} parameter has been removed"
-                    )
+                    click.echo(f"The {param.Name} parameter has been removed")
     else:
         param = aws_params.get_parameter(name=src)
         if param and param.Name == src:
@@ -149,28 +177,54 @@ def rm(src, force=False, prefix=False, profile="", region=""):
             click.echo(f"Parameter {src} not found")
 
 
-@main.command('new')
-@click.option('--name', type=click.STRING, prompt="Parameter Name", help='parameter name')
-@click.option('--value', type=click.STRING, help='parameter value')
-@click.option('--param_type', type=click.STRING, default='String', help='parameter type one of String(default), StringList, SecureString')
-@click.option('--key', type=click.STRING, default='', help='KMS Key used to encrypt the parameter')
-@click.option('--description', type=click.STRING, default='', help='parameter description text')
-@click.option('--profile', type=click.STRING, help='alternative profile to be used')
-@click.option('--region', type=click.STRING, help='alternative region to be used')
-@click.option('--overwrite', is_flag=True, help='overwrite exisiting parameters')
-def new(name=None, value=None, param_type='String', key='', description='', profile="", region="", overwrite=False):
+@main.command("new")
+@click.option(
+    "--name", type=click.STRING, prompt="Parameter Name", help="parameter name"
+)
+@click.option("--value", type=click.STRING, help="parameter value")
+@click.option(
+    "--param_type",
+    type=click.STRING,
+    default="String",
+    help="parameter type one of String(default), StringList, SecureString",
+)
+@click.option(
+    "--key", type=click.STRING, default="", help="KMS Key used to encrypt the parameter"
+)
+@click.option(
+    "--description", type=click.STRING, default="", help="parameter description text"
+)
+@click.option("--profile", type=click.STRING, help="alternative profile to be used")
+@click.option("--region", type=click.STRING, help="alternative region to be used")
+@click.option("--overwrite", is_flag=True, help="overwrite exisiting parameters")
+def new(
+    name=None,
+    value=None,
+    param_type="String",
+    key="",
+    description="",
+    profile="",
+    region="",
+    overwrite=False,
+):
     """
     Create a new parameter
     """
     AWSParams(profile, region).new_param(
-        name, value, param_type=param_type, key=key, description=description, overwrite=overwrite)
+        name,
+        value,
+        param_type=param_type,
+        key=key,
+        description=description,
+        overwrite=overwrite,
+    )
 
 
-@main.command('set')
-@click.argument('src')
-@click.argument('value')
-@click.option('--profile', type=click.STRING, default='', help="source profile")
-@click.option('--region', type=click.STRING, default='', help="source region")
+@main.command("set")
+@click.argument("src")
+@click.argument("value")
+@click.option("--profile", type=click.STRING, default="", help="source profile")
+@click.option("--region", type=click.STRING, default="", help="source region")
 def set(src=None, value=None, profile="", region=""):
     """
     Edit an existing parameter
@@ -182,5 +236,5 @@ def set(src=None, value=None, profile="", region=""):
         click.echo(f"not updated, param '{src}' already contains that value")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
