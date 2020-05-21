@@ -66,7 +66,7 @@ def test_put_parameter_profile(awsparams):
         'Value': 'fakevalue'
     }
     try:
-        awsparams.put_parameter(param, profile='default')
+        awsparams.put_parameter(param, profile='default', region='default')
         result = awsparams.get_parameter('fakeparam', values=True)
         assert result == ParamResult(**param)
     except ProfileNotFound:

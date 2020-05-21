@@ -40,6 +40,7 @@ class AWSParams(object):
 
     Args:
         profile (optional): AWS Profile to use for the session
+        region (optional): AWS Region to use for the session
 
     Attributes:
         ssm (:obj:`boto3.client`): Boto3 SSM Client object
@@ -48,19 +49,26 @@ class AWSParams(object):
     """
     ssm = None
     profile = ""
+    region = ""
 
-    def __init__(self, profile: str=""):
+    def __init__(self, profile: str="", region: str=""):
         self.profile = profile
-        if profile:
-            session = boto3.Session(profile_name=self.profile)
+        self.region = region
+        if profile and region:
+            session = boto3.Session(
+                profile_name=self.profile,
+                region_name=self.region
+            )
             self.ssm = session.client("ssm")
         else:
             self.ssm = boto3.client("ssm")
 
-    def _connect_ssm(self, profile: str=""):
-        if profile:
+    def _connect_ssm(self, profile: str="", region: str=""):
+        if profile and region:
             session = boto3.Session(
-                profile_name=profile)
+                profile_name=self.profile,
+                region_name=self.region
+            )
             ssm = session.client("ssm")
         else:
             ssm = boto3.client("ssm")
@@ -120,7 +128,7 @@ class AWSParams(object):
         else:
             return [self.build_param_result(param, values=values, prefix=trim) for param in parameters]
 
-    def put_parameter(self, parameter: dict, *, overwrite: bool=False, profile: str=""):
+    def put_parameter(self, parameter: dict, *, overwrite: bool=False, profile: str="", region: str=""):
         """Put a Parameter
 
         Args:
@@ -129,8 +137,8 @@ class AWSParams(object):
             profile (str, optional): Optional specifiy a alternate profile to use
 
         """
-        if profile:
-            ssm = self._connect_ssm(profile)
+        if profile and region:
+            ssm = self._connect_ssm(profile, region)
         else:
             ssm = self.ssm
         if overwrite:
