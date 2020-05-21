@@ -76,7 +76,7 @@ def test_ls__without_decrypt(cli_runner):
         cli.ls, ['testing.testing.', '-v', '--no-decryption'])
     cli_runner.invoke(cli.rm, ['testing.testing.testing', '-f'])
     assert result.exit_code == 0
-    assert result.output.strip() == "testing.testing.testing: kms:default:1234"
+    assert result.output.strip() == "testing.testing.testing: kms:alias/aws/ssm:1234"
 
 
 @mock_ssm
