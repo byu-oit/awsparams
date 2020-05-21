@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "awsparams"
-version = "1.1.1"
+version = "1.2.0"
 description = "A simple CLI and Library for adding/removing/renaming/copying AWS Param Store Parameters"
 authors = ["Nate Peterson <ndpete@gmail.com>"]
 license = "Apache-2.0"
