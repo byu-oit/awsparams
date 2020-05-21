@@ -30,6 +30,7 @@ class ParamResult(NamedTuple):
         Type (str): Type of the Parameter
 
     """
+
     Name: str
     Value: str
     Type: str
@@ -46,21 +47,29 @@ class AWSParams(object):
         profile (str, optional): AWS Profile to use for the session
 
     """
-    ssm = None
-    profile = ""
 
-    def __init__(self, profile: str=""):
-        self.profile = profile
+    ssm = None
+
+    def __init__(self, profile: str = "", region: str = ""):
+        args = {}
         if profile:
-            session = boto3.Session(profile_name=self.profile)
+            args["profile_name"] = profile
+        if region:
+            args["region_name"] = region
+        if profile or region:
+            session = boto3.Session(**args)
             self.ssm = session.client("ssm")
         else:
             self.ssm = boto3.client("ssm")
 
-    def _connect_ssm(self, profile: str=""):
+    def _connect_ssm(self, profile: str = "", region: str = ""):
+        args = {}
         if profile:
-            session = boto3.Session(
-                profile_name=profile)
+            args["profile_name"] = profile
+        if region:
+            args["region_name"] = region
+        if profile or region:
+            session = boto3.Session(**args)
             ssm = session.client("ssm")
         else:
             ssm = boto3.client("ssm")
@@ -76,51 +85,63 @@ class AWSParams(object):
 
     def _get_all_by_path(self, path, values, decryption, trim):
         parameters = []
-        paginator = self.ssm.get_paginator('get_parameters_by_path')
+        paginator = self.ssm.get_paginator("get_parameters_by_path")
         page_iterator = paginator.paginate(
-            Path=path, Recursive=True, WithDecryption=decryption)
+            Path=path, Recursive=True, WithDecryption=decryption
+        )
         for page in page_iterator:
             parameters.extend(
-                [self.build_param_result(param, values=values, prefix=trim)
-                    for param in page['Parameters']]
+                [
+                    self.build_param_result(param, values=values, prefix=trim)
+                    for param in page["Parameters"]
+                ]
             )
         return parameters
 
     def _get_all_prefix(self, prefix, values, decryption, trim):
         parameters = []
-        paginator = self.ssm.get_paginator('describe_parameters')
+        paginator = self.ssm.get_paginator("describe_parameters")
         if prefix:
-            filters = [{
-                'Key': 'Name',
-                'Option': 'BeginsWith',
-                'Values': [prefix]
-            }]
+            filters = [{"Key": "Name", "Option": "BeginsWith", "Values": [prefix]}]
             page_iterator = paginator.paginate(ParameterFilters=filters)
         else:
             page_iterator = paginator.paginate()
 
         for page in page_iterator:
             page_params = []
-            for param in page['Parameters']:
-                if prefix in param['Name']:
-                    page_params.append({
-                        "Name": param["Name"],
-                        "Type": param["Type"],
-                        "Value": None
-                    })
+            for param in page["Parameters"]:
+                if prefix in param["Name"]:
+                    page_params.append(
+                        {"Name": param["Name"], "Type": param["Type"], "Value": None}
+                    )
             parameters.extend(page_params)
 
         if values:
             params = []
             for param_list in self._grouper(10, parameters):
-                name_list = [param['Name'] for param in param_list]
-                raw_parameters = self.ssm.get_parameters(Names=name_list, WithDecryption=decryption)
-                params.extend(self.build_param_result(param, values=values, prefix=trim) for param in raw_parameters['Parameters'])
+                name_list = [param["Name"] for param in param_list]
+                raw_parameters = self.ssm.get_parameters(
+                    Names=name_list, WithDecryption=decryption
+                )
+                params.extend(
+                    self.build_param_result(param, values=values, prefix=trim)
+                    for param in raw_parameters["Parameters"]
+                )
             return params
         else:
-            return [self.build_param_result(param, values=values, prefix=trim) for param in parameters]
+            return [
+                self.build_param_result(param, values=values, prefix=trim)
+                for param in parameters
+            ]
 
-    def put_parameter(self, parameter: dict, *, overwrite: bool=False, profile: str=""):
+    def put_parameter(
+        self,
+        parameter: dict,
+        *,
+        overwrite: bool = False,
+        profile: str = "",
+        region: str = ""
+    ):
         """Put a Parameter
 
         Args:
@@ -129,8 +150,8 @@ class AWSParams(object):
             profile (str, optional): Optional specifiy a alternate profile to use
 
         """
-        if profile:
-            ssm = self._connect_ssm(profile)
+        if profile or region:
+            ssm = self._connect_ssm(profile, region)
         else:
             ssm = self.ssm
         if overwrite:
@@ -146,7 +167,7 @@ class AWSParams(object):
         """
         self.ssm.delete_parameter(Name=param)
 
-    def get_parameter_value(self, name: str, *, decryption: bool=True) -> str:
+    def get_parameter_value(self, name: str, *, decryption: bool = True) -> str:
         """Get a specified Parameter's Value
 
         Args:
@@ -162,7 +183,9 @@ class AWSParams(object):
         ]
         return param["Value"]
 
-    def get_parameter(self, name: str, *, values: bool=True, decryption: bool=True) -> Union[ParamResult, None]:
+    def get_parameter(
+        self, name: str, *, values: bool = True, decryption: bool = True
+    ) -> Union[ParamResult, None]:
         """Get a specific Parameter
 
         Args:
@@ -175,15 +198,15 @@ class AWSParams(object):
 
         """
         try:
-            param = self.ssm.get_parameter(
-                Name=name, WithDecryption=decryption)
+            param = self.ssm.get_parameter(Name=name, WithDecryption=decryption)
         except self.ssm.exceptions.ParameterNotFound:
             return
-        result = self.build_param_result(
-            param["Parameter"], values=values)
+        result = self.build_param_result(param["Parameter"], values=values)
         return result
 
-    def build_param_result(self, param: dict, *, prefix: str="", values: bool=True) -> ParamResult:
+    def build_param_result(
+        self, param: dict, *, prefix: str = "", values: bool = True
+    ) -> ParamResult:
         """Build a parameter result
 
         Args:
@@ -202,7 +225,14 @@ class AWSParams(object):
         }
         return ParamResult(**result)
 
-    def get_all_parameters(self, *, prefix: str='', values: bool=True, decryption: bool=True, trim_name: bool=True) -> List[ParamResult]:
+    def get_all_parameters(
+        self,
+        *,
+        prefix: str = "",
+        values: bool = True,
+        decryption: bool = True,
+        trim_name: bool = True
+    ) -> List[ParamResult]:
         """Get all parameters Optionally by prefix or path
 
         If prefix starts with a / then A Parameter path is assumed and the calls to aws
@@ -218,14 +248,23 @@ class AWSParams(object):
             List[ParamResult]: List of Parameter Results
 
         """
-        path = True if prefix[:1] == '/' else False
+        path = True if prefix[:1] == "/" else False
         trim = prefix if prefix and trim_name else ""
         if path:
             return self._get_all_by_path(prefix, values, decryption, trim)
         else:
             return self._get_all_prefix(prefix, values, decryption, trim)
 
-    def new_param(self, name: str, value: str, *, param_type: str="String", key: str="", description: str="", overwrite: bool=False):
+    def new_param(
+        self,
+        name: str,
+        value: str,
+        *,
+        param_type: str = "String",
+        key: str = "",
+        description: str = "",
+        overwrite: bool = False
+    ):
         """
         Create a new parameter
 
@@ -245,7 +284,7 @@ class AWSParams(object):
             "Overwrite": overwrite,
         }
         if key:
-            param['KeyId'] = key
+            param["KeyId"] = key
         if description:
             param["Description"] = description
         self.put_parameter(param, overwrite=overwrite)
@@ -263,9 +302,7 @@ class AWSParams(object):
         """
         existing_value = self.get_parameter_value(param, decryption=True)
         if existing_value != value:
-            put = self.get_parameter(
-                name=param, values=True, decryption=True
-            )._asdict()
+            put = self.get_parameter(name=param, values=True, decryption=True)._asdict()
             put["Value"] = value
             self.put_parameter(put, overwrite=True)
             return True
