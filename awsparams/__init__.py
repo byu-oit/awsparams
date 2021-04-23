@@ -165,7 +165,10 @@ class AWSParams(object):
             param (str): Name of the parameter to remove
 
         """
-        self.ssm.delete_parameter(Name=param)
+        try:
+            self.ssm.delete_parameter(Name=param)
+        except self.ssm.exceptions.ParameterNotFound:
+            return
 
     def get_parameter_value(self, name: str, *, decryption: bool = True) -> str:
         """Get a specified Parameter's Value
