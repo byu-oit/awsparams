@@ -21,6 +21,7 @@ Full documentation can be found here: https://awsparams.readthedocs.io/en/latest
 
   - AWSParams requires Python 3.6+
   - Depending on your Python3.6 install either `pip install awsparams` or `pip3 install awsparams`
+    - If you're on windows, make sure that `C:\Users\{your user}\AppData\Roaming\Python\{your python version}\Scripts` has been added to your user path.
 
 # Usage
 ## Library:
