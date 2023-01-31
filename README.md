@@ -94,6 +94,9 @@ ls with values and decryption: `awsparams ls --with-decryption`
 
 ls by prefix: `awsparams ls appname.prd`
 
+ls with values, formatted as an environment variable string: `awsparams ls -v --env-format <prefix>` or `awsparams ls -v -f <prefix>`
+> *`--env-format`/`-f` is used for easy quickly pasting into run configurations in IDE's*
+
 ## new usage
 
 new interactively: `awsparams new`

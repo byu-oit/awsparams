@@ -34,12 +34,13 @@ def main():
 @click.option("--profile", type=click.STRING, help="profile to run with")
 @click.option("--region", type=click.STRING, help="optional region to use")
 @click.option("-v", "--values", is_flag=True, help="display values")
+@click.option("-f", "--env-format", is_flag=True, help="format as a list of env vars (used with -v)")
 @click.option(
     "--decryption/--no-decryption",
     help="by default display decrypted values",
     default=True,
 )
-def ls(prefix="", profile="", region="", values=False, decryption=True):
+def ls(prefix="", profile="", region="", values=False, env_format=False, decryption=True):
     """
     List Paramters, optional matching a specific prefix
     """
@@ -50,7 +51,15 @@ def ls(prefix="", profile="", region="", values=False, decryption=True):
         prefix=prefix, values=values, decryption=decryption, trim_name=False
     ):
         if values:
-            click.echo(f"{parm.Name}: {parm.Value}")
+            if env_format:
+                short_param = parm.Name.replace(prefix, "")
+                # Users will not want the leading period that would remain if only the prefix is trimmed
+                # If an incomplete prefix is used, the first character may not be a period, so check first
+                if short_param[0] == ".":
+                    short_param = short_param[1:]
+                click.echo(f"{short_param}={parm.Value};")
+            else:
+                click.echo(f"{parm.Name}: {parm.Value}")
         else:
             click.echo(parm.Name)
 
