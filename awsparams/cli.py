@@ -53,9 +53,8 @@ def ls(prefix="", profile="", region="", values=False, env_format=False, decrypt
         if values:
             if env_format:
                 short_param = parm.Name.replace(prefix, "")
-                # most of the time users will not want the leading period (left after the prefix)
-                # However, don't do this always.
-                # If a full prefix is not provided, this will cause an error.
+                # Users will not want the leading period that would remain if only the prefix is trimmed
+                # If an incomplete prefix is used, the first character may not be a period, so check first
                 if short_param[0] == ".":
                     short_param = short_param[1:]
                 click.echo(f"{short_param}={parm.Value};")
