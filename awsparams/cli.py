@@ -53,9 +53,10 @@ def ls(prefix="", profile="", region="", values=False, env_format=False, decrypt
         if values:
             if env_format:
                 short_param = parm.Name.replace(prefix, "")
-                # Users will not want the leading period that would remain if only the prefix is trimmed
-                # If an incomplete prefix is used, the first character may not be a period, so check first
-                if short_param[0] == ".":
+                # Sometimes leftover delimiters remain at the beginning of the string after this step
+                # This loop removes those delimiters so that the variables are formatted in a useful manner.
+                delimiters = ['.', '\\', '/']
+                while delimiters.count(short_param[0]) != 0:
                     short_param = short_param[1:]
                 click.echo(f"{short_param}={parm.Value};")
             else:
