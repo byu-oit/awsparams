@@ -45,7 +45,10 @@ def main():
 )
 def ls(prefix="", profile="", region="", values=False, run_config=False, env_vars=False, tfvars=False, esc_quotes=False, decryption=True):
     """
-    List Paramters, optional matching a specific prefix
+    List Parameters, optionally matching a specific prefix
+    run_config - print out separated by '=' and ended with ';'
+    env_vars - print out separated by '=', values wrapped in quotes
+    tfvars - print out separated by ' = ', values wrapped in quotes
     """
     aws_params = AWSParams(profile, region)
     if run_config or env_vars or tfvars:  # all of these options should also fetch the values
@@ -53,7 +56,7 @@ def ls(prefix="", profile="", region="", values=False, run_config=False, env_var
     if not values:
         decryption = False
     for parm in aws_params.get_all_parameters(
-        prefix=prefix, values=values, decryption=decryption, trim_name=False
+            prefix=prefix, values=values, decryption=decryption, trim_name=False
     ):
         if values:
             if run_config or env_vars or tfvars:
@@ -112,15 +115,15 @@ def escape_quotes(string):
     "--key", type=click.STRING, default="", help="kms key to use for new copy"
 )
 def cp(
-    src,
-    dst,
-    src_profile,
-    src_region,
-    dst_profile,
-    dst_region,
-    prefix=False,
-    overwrite=False,
-    key="",
+        src,
+        dst,
+        src_profile,
+        src_region,
+        dst_profile,
+        dst_region,
+        prefix=False,
+        overwrite=False,
+        key="",
 ):
     """
     Copy a parameter, optionally across accounts
@@ -175,7 +178,7 @@ def mv(ctx, src, dst, prefix=False, profile="", region=""):
     """
     if prefix:
         if ctx.invoke(
-            cp, src=src, dst=dst, src_profile=profile, prefix=prefix, src_region=region
+                cp, src=src, dst=dst, src_profile=profile, prefix=prefix, src_region=region
         ):
             ctx.invoke(
                 rm, src=src, force=True, prefix=True, profile=profile, region=region
@@ -236,14 +239,14 @@ def rm(src, force=False, prefix=False, profile="", region=""):
 @click.option("--region", type=click.STRING, help="alternative region to be used")
 @click.option("--overwrite", is_flag=True, help="overwrite exisiting parameters")
 def new(
-    name=None,
-    value=None,
-    param_type="String",
-    key="",
-    description="",
-    profile="",
-    region="",
-    overwrite=False,
+        name=None,
+        value=None,
+        param_type="String",
+        key="",
+        description="",
+        profile="",
+        region="",
+        overwrite=False,
 ):
     """
     Create a new parameter
