@@ -34,35 +34,68 @@ def main():
 @click.option("--profile", type=click.STRING, help="profile to run with")
 @click.option("--region", type=click.STRING, help="optional region to use")
 @click.option("-v", "--values", is_flag=True, help="display values")
-@click.option("-f", "--env-format", is_flag=True, help="format as a list of env vars (used with -v)")
+@click.option("-e", "--dot-env", is_flag=True, help="format list for a .env file")
+@click.option("-t", "--tfvars", is_flag=True, help="format list for a .tfvars file")
+@click.option("-r", "--jetbrains-run-config", is_flag=True, help="format list for a Jetbrains run configuration")
+@click.option("-q", "--esc-quotes", is_flag=True, help="Escape quotes in values (for --env-vars or --tfvars)")
 @click.option(
     "--decryption/--no-decryption",
     help="by default display decrypted values",
     default=True,
 )
-def ls(prefix="", profile="", region="", values=False, env_format=False, decryption=True):
+def ls(prefix="", profile="", region="", values=False, run_config=False, env_vars=False, tfvars=False, esc_quotes=False, decryption=True):
     """
-    List Paramters, optional matching a specific prefix
+    List Parameters, optionally matching a specific prefix
     """
     aws_params = AWSParams(profile, region)
+    if run_config or env_vars or tfvars:  # all of these options should also fetch the values
+        values = True
     if not values:
         decryption = False
     for parm in aws_params.get_all_parameters(
-        prefix=prefix, values=values, decryption=decryption, trim_name=False
+            prefix=prefix, values=values, decryption=decryption, trim_name=False
     ):
         if values:
-            if env_format:
-                short_param = parm.Name.replace(prefix, "")
-                # Sometimes leftover delimiters remain at the beginning of the string after this step
-                # This loop removes those delimiters so that the variables are formatted in a useful manner.
-                delimiters = ['.', '\\', '/']
-                while delimiters.count(short_param[0]) != 0:
-                    short_param = short_param[1:]
-                click.echo(f"{short_param}={parm.Value};")
+            if run_config or env_vars or tfvars:
+                param_parts = parm.Name.split('/')
+                prefix_parts = prefix.split('/')
+                # remove any duplicate, leading, or trailing delimiters from both lists
+                for arr in [param_parts, prefix_parts]:
+                    for part in arr:
+                        if part == '':
+                            arr.remove(part)
+                name = []
+                # 'subtract' the prefix from the name by starting from the rightmost element
+                #  and appending elements leftwards until you reach the prefix
+                for i in range(len(param_parts) - 1, len(prefix_parts) - 1, -1):
+                    name.insert(0, param_parts[i])
+                # reconstruct the param name
+                name = '/'.join(name)
+                """
+                run_config - print out separated by '=' and ended with ';'
+                env_vars - print out separated by '=', values wrapped in quotes
+                tfvars - print out separated by ' = ', values wrapped in quotes
+                """
+                if env_vars:
+                    click.echo(f"{name}=\"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
+                elif tfvars:
+                    click.echo(f"{name} = \"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
+                elif run_config:
+                    click.echo(f"{name}={parm.Value};")
             else:
                 click.echo(f"{parm.Name}: {parm.Value}")
         else:
             click.echo(parm.Name)
+
+
+def escape_quotes(string):
+    newstr = ''
+    for c in string:
+        if c == '"':
+            newstr += '\\"'
+        else:
+            newstr += c
+    return newstr
 
 
 @main.command("cp")
@@ -84,15 +117,15 @@ def ls(prefix="", profile="", region="", values=False, env_format=False, decrypt
     "--key", type=click.STRING, default="", help="kms key to use for new copy"
 )
 def cp(
-    src,
-    dst,
-    src_profile,
-    src_region,
-    dst_profile,
-    dst_region,
-    prefix=False,
-    overwrite=False,
-    key="",
+        src,
+        dst,
+        src_profile,
+        src_region,
+        dst_profile,
+        dst_region,
+        prefix=False,
+        overwrite=False,
+        key="",
 ):
     """
     Copy a parameter, optionally across accounts
@@ -147,7 +180,7 @@ def mv(ctx, src, dst, prefix=False, profile="", region=""):
     """
     if prefix:
         if ctx.invoke(
-            cp, src=src, dst=dst, src_profile=profile, prefix=prefix, src_region=region
+                cp, src=src, dst=dst, src_profile=profile, prefix=prefix, src_region=region
         ):
             ctx.invoke(
                 rm, src=src, force=True, prefix=True, profile=profile, region=region
@@ -208,14 +241,14 @@ def rm(src, force=False, prefix=False, profile="", region=""):
 @click.option("--region", type=click.STRING, help="alternative region to be used")
 @click.option("--overwrite", is_flag=True, help="overwrite exisiting parameters")
 def new(
-    name=None,
-    value=None,
-    param_type="String",
-    key="",
-    description="",
-    profile="",
-    region="",
-    overwrite=False,
+        name=None,
+        value=None,
+        param_type="String",
+        key="",
+        description="",
+        profile="",
+        region="",
+        overwrite=False,
 ):
     """
     Create a new parameter
