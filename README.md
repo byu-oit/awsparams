@@ -95,8 +95,18 @@ ls with values and decryption: `awsparams ls --with-decryption`
 
 ls by prefix: `awsparams ls appname.prd`
 
-ls with values, formatted as an environment variable string: `awsparams ls -v --env-format <prefix>` or `awsparams ls -v -f <prefix>`
-> *`--env-format`/`-f` is used for easy quickly pasting into run configurations in IDE's*
+ls with values, formatted for using in a Jetbrains run configuration: `awsparams ls -r <prefix>`
+or `awsparams ls --jetbrains-run-config <prefix>`
+
+ls with values, formatted for using in a `.env` file: `awsparams ls -e <prefix>`
+or `awsparams ls --dot-env <prefix>`
+
+ls with values, formatted for using in a `.tfvars` file: `awsparams ls -t <prefix>`
+or `awsparams ls --tfvars <prefix>`
+
+For the above two options, add the `-q` or `--esc-quotes` flag for adding `\` in front of any quotation marks in
+the values, such as in stringify-ed JSON objects. Most `.env` file parsers don't require this, but `.tfvars`
+probably does.
 
 ## new usage
 

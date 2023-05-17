@@ -34,9 +34,9 @@ def main():
 @click.option("--profile", type=click.STRING, help="profile to run with")
 @click.option("--region", type=click.STRING, help="optional region to use")
 @click.option("-v", "--values", is_flag=True, help="display values")
-@click.option("-e", "--env-vars", is_flag=True, help="format list for a .env file")
+@click.option("-e", "--dot-env", is_flag=True, help="format list for a .env file")
 @click.option("-t", "--tfvars", is_flag=True, help="format list for a .tfvars file")
-@click.option("-r", "--run-config", is_flag=True, help="format list for a Jetbrains run configuration")
+@click.option("-r", "--jetbrains-run-config", is_flag=True, help="format list for a Jetbrains run configuration")
 @click.option("-q", "--esc-quotes", is_flag=True, help="Escape quotes in values (for --env-vars or --tfvars)")
 @click.option(
     "--decryption/--no-decryption",

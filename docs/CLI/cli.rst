@@ -39,10 +39,10 @@ ls with values and decryption: ``awsparams ls --with-decryption``
 ls by prefix: ``awsparams ls appname.prd``
 
 ls with values, formatted for using in a Jetbrains run configuration: ``awsparams ls -r <prefix>``
-or ``awsparams ls --run-config <prefix>``
+or ``awsparams ls --jetbrains-run-config <prefix>``
 
 ls with values, formatted for using in a ``.env`` file: ``awsparams ls -e <prefix>``
-or ``awsparams ls --env-vars <prefix>``
+or ``awsparams ls --dot-env <prefix>``
 
 ls with values, formatted for using in a ``.tfvars`` file: ``awsparams ls -t <prefix>``
 or ``awsparams ls --tfvars <prefix>``
