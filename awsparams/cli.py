@@ -37,7 +37,7 @@ def main():
 @click.option("-e", "--env-vars", is_flag=True, help="format list for a .env file")
 @click.option("-t", "--tfvars", is_flag=True, help="format list for a .tfvars file")
 @click.option("-r", "--run-config", is_flag=True, help="format list for a Jetbrains run configuration")
-@click.option("-q", "--esc-quotes", is_flag=True, help="Escape quotes (for --env-vars or --tfvars)")
+@click.option("-q", "--esc-quotes", is_flag=True, help="Escape quotes in values (for --env-vars or --tfvars)")
 @click.option(
     "--decryption/--no-decryption",
     help="by default display decrypted values",
@@ -46,9 +46,6 @@ def main():
 def ls(prefix="", profile="", region="", values=False, run_config=False, env_vars=False, tfvars=False, esc_quotes=False, decryption=True):
     """
     List Parameters, optionally matching a specific prefix
-    run_config - print out separated by '=' and ended with ';'
-    env_vars - print out separated by '=', values wrapped in quotes
-    tfvars - print out separated by ' = ', values wrapped in quotes
     """
     aws_params = AWSParams(profile, region)
     if run_config or env_vars or tfvars:  # all of these options should also fetch the values
@@ -74,6 +71,11 @@ def ls(prefix="", profile="", region="", values=False, run_config=False, env_var
                     name.insert(0, param_parts[i])
                 # reconstruct the param name
                 name = '/'.join(name)
+                """
+                run_config - print out separated by '=' and ended with ';'
+                env_vars - print out separated by '=', values wrapped in quotes
+                tfvars - print out separated by ' = ', values wrapped in quotes
+                """
                 if env_vars:
                     click.echo(f"{name}=\"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
                 elif tfvars:
