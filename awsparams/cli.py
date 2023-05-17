@@ -43,12 +43,12 @@ def main():
     help="by default display decrypted values",
     default=True,
 )
-def ls(prefix="", profile="", region="", values=False, run_config=False, env_vars=False, tfvars=False, esc_quotes=False, decryption=True):
+def ls(prefix="", profile="", region="", values=False, dot_env=False, tfvars=False, jetbrains_run_config=False, esc_quotes=False, decryption=True):
     """
     List Parameters, optionally matching a specific prefix
     """
     aws_params = AWSParams(profile, region)
-    if run_config or env_vars or tfvars:  # all of these options should also fetch the values
+    if jetbrains_run_config or dot_env or tfvars:  # all of these options should also fetch the values
         values = True
     if not values:
         decryption = False
@@ -56,7 +56,7 @@ def ls(prefix="", profile="", region="", values=False, run_config=False, env_var
             prefix=prefix, values=values, decryption=decryption, trim_name=False
     ):
         if values:
-            if run_config or env_vars or tfvars:
+            if jetbrains_run_config or dot_env or tfvars:
                 param_parts = parm.Name.split('/')
                 prefix_parts = prefix.split('/')
                 # remove any duplicate, leading, or trailing delimiters from both lists
@@ -76,11 +76,11 @@ def ls(prefix="", profile="", region="", values=False, run_config=False, env_var
                 env_vars - print out separated by '=', values wrapped in quotes
                 tfvars - print out separated by ' = ', values wrapped in quotes
                 """
-                if env_vars:
+                if dot_env:
                     click.echo(f"{name}=\"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
                 elif tfvars:
                     click.echo(f"{name} = \"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
-                elif run_config:
+                elif jetbrains_run_config:
                     click.echo(f"{name}={parm.Value};")
             else:
                 click.echo(f"{parm.Name}: {parm.Value}")
