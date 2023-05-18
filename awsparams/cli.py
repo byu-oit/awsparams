@@ -33,6 +33,7 @@ def main():
 @click.argument("prefix", default="")
 @click.option("--profile", type=click.STRING, help="profile to run with")
 @click.option("--region", type=click.STRING, help="optional region to use")
+@click.option("-d", "--delimiter", type=click.STRING, help="optional delimiter for param paths. default='/'")
 @click.option("-v", "--values", is_flag=True, help="display values")
 @click.option("-e", "--dot-env", is_flag=True, help="format list for a .env file")
 @click.option("-t", "--tfvars", is_flag=True, help="format list for a .tfvars file")
@@ -43,7 +44,7 @@ def main():
     help="by default display decrypted values",
     default=True,
 )
-def ls(prefix="", profile="", region="", values=False, dot_env=False, tfvars=False, jetbrains_run_config=False, esc_quotes=False, decryption=True):
+def ls(prefix="", profile="", region="", delimiter="", values=False, dot_env=False, tfvars=False, jetbrains_run_config=False, esc_quotes=False, decryption=True):
     """
     List Parameters, optionally matching a specific prefix
     """
@@ -52,13 +53,15 @@ def ls(prefix="", profile="", region="", values=False, dot_env=False, tfvars=Fal
         values = True
     if not values:
         decryption = False
+    if not delimiter:
+        delimiter = "/"
     for parm in aws_params.get_all_parameters(
             prefix=prefix, values=values, decryption=decryption, trim_name=False
     ):
         if values:
             if jetbrains_run_config or dot_env or tfvars:
-                param_parts = parm.Name.split('/')
-                prefix_parts = prefix.split('/')
+                param_parts = parm.Name.split(delimiter)
+                prefix_parts = prefix.split(delimiter)
                 # remove any duplicate, leading, or trailing delimiters from both lists
                 for arr in [param_parts, prefix_parts]:
                     for part in arr:
@@ -70,7 +73,11 @@ def ls(prefix="", profile="", region="", values=False, dot_env=False, tfvars=Fal
                 for i in range(len(param_parts) - 1, len(prefix_parts) - 1, -1):
                     name.insert(0, param_parts[i])
                 # reconstruct the param name
-                name = '/'.join(name)
+                name = delimiter.join(name)
+                # if there was a failure in our automatic prefix removal (such as wrong delimiter),
+                #  resulting in an empty string, replace it with the original name
+                if name == '':
+                    name = parm.Name
                 """
                 run_config - print out separated by '=' and ended with ';'
                 env_vars - print out separated by '=', values wrapped in quotes
@@ -86,7 +93,6 @@ def ls(prefix="", profile="", region="", values=False, dot_env=False, tfvars=Fal
                 click.echo(f"{parm.Name}: {parm.Value}")
         else:
             click.echo(parm.Name)
-
 
 def escape_quotes(string):
     newstr = ''

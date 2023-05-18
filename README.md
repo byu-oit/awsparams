@@ -108,6 +108,8 @@ For the above two options, add the `-q` or `--esc-quotes` flag for adding `\` in
 the values, such as in stringify-ed JSON objects. Most `.env` file parsers don't require this, but `.tfvars`
 probably does.
 
+Add the `--delimiter <delimiter>` (or `-d <delimiter>`) option to override the default delimiter (`/`), if necessary.
+
 ## new usage
 
 new interactively: `awsparams new`
