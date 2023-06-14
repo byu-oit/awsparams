@@ -130,3 +130,16 @@ overwrite existing parameters accross different accounts: `awsparams cp repometa
 --prefix=True`
 
 copy single parameters accross different accounts: `awsparams cp appname.dev.username appname.trb.us`
+
+# Contributing
+To contribute:
+1. Make a PR to master
+   - In your changes, make sure to manually bump the package version in the `pyproject.toml` file to whatever version
+   you think is appropriate.
+2. Once the PR is approved, merge it in to master.
+3. Create a new release and a new tag where the version in the tag is equal to the new version you set in the
+   `pyproject.toml` file.
+4. Once you publish the release, check the GitHub actions and notice that it is automatically deploying the package.
+5. Confirm that the deploy succeeds.
+    - If anything goes wrong, fix it and then re-run the workflow. 
+    - You may have to delete your release/tag and recreate it.
