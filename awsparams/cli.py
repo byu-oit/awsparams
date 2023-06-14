@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import click
+from botocore.exceptions import ProfileNotFound, NoRegionError, SSOTokenLoadError, UnauthorizedSSOTokenError
 
 from awsparams import __VERSION__, AWSParams
 
@@ -48,16 +49,32 @@ def ls(prefix="", profile="", region="", delimiter="", values=False, dot_env=Fal
     """
     List Parameters, optionally matching a specific prefix
     """
-    aws_params = AWSParams(profile, region)
+    aws_params = None
+    try:
+        aws_params = AWSParams(profile, region)
+    except ProfileNotFound:
+        print('Error: profile specified with AWS_PROFILE not found! Please specify a valid profile.')
+        quit()
+    except NoRegionError:
+        print('Error: no profile specified, or no region specified.')
+        quit()
+
     if jetbrains_run_config or dot_env or tfvars:  # all of these options should also fetch the values
         values = True
     if not values:
         decryption = False
     if not delimiter:
         delimiter = "/"
-    for parm in aws_params.get_all_parameters(
+    all_params = []
+    try:
+        all_params = aws_params.get_all_parameters(
             prefix=prefix, values=values, decryption=decryption, trim_name=False
-    ):
+        )
+    except (SSOTokenLoadError, UnauthorizedSSOTokenError):
+        print('Error: Your AWS SSO credentials are invalid or have expired. Please log in again.')
+        quit()
+
+    for parm in all_params:
         if values:
             if jetbrains_run_config or dot_env or tfvars:
                 param_parts = parm.Name.split(delimiter)
@@ -93,6 +110,7 @@ def ls(prefix="", profile="", region="", delimiter="", values=False, dot_env=Fal
                 click.echo(f"{parm.Name}: {parm.Value}")
         else:
             click.echo(parm.Name)
+
 
 def escape_quotes(string):
     newstr = ''
