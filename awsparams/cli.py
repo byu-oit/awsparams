@@ -101,22 +101,26 @@ def ls(prefix="", profile="", region="", delimiter="", values=False, dot_env=Fal
                 tfvars - print out separated by ' = ', values wrapped in quotes
                 """
                 if dot_env:
-                    click.echo(f"{name}=\"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
+                    click.echo(f"{name}=\"{escape_char(parm.Value) if esc_quotes else parm.Value}\"")
                 elif tfvars:
-                    click.echo(f"{name} = \"{escape_quotes(parm.Value) if esc_quotes else parm.Value}\"")
+                    click.echo(f"{name} = \"{escape_char(parm.Value) if esc_quotes else parm.Value}\"")
                 elif jetbrains_run_config:
-                    click.echo(f"{name}={parm.Value};")
+                    click.echo(f"{name}={escape_char(parm.Value, ';')};")
             else:
                 click.echo(f"{parm.Name}: {parm.Value}")
         else:
             click.echo(parm.Name)
 
 
-def escape_quotes(string):
+def escape_char(string, char='"'):
+    """
+    Escapes characters in the string by adding backslashes before all occurrences of it
+    By default, escapes quotation marks
+    """
     newstr = ''
     for c in string:
-        if c == '"':
-            newstr += '\\"'
+        if c == char:
+            newstr += '\\' + char
         else:
             newstr += c
     return newstr
