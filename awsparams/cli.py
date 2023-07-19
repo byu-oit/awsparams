@@ -74,6 +74,13 @@ def ls(prefix="", profile="", region="", delimiter="", values=False, dot_env=Fal
         print('Error: Your AWS SSO credentials are invalid or have expired. Please log in again.')
         quit()
 
+    # tfvars should be formatted based no the length of the longest name, so this finds length of the longest name.
+    longest_name_length = 0
+    if tfvars:
+        for param in all_params:
+            if len(param.Name) > longest_name_length:
+                longest_name_length = len(param.Name)
+
     for parm in all_params:
         if values:
             if jetbrains_run_config or dot_env or tfvars:
@@ -103,7 +110,8 @@ def ls(prefix="", profile="", region="", delimiter="", values=False, dot_env=Fal
                 if dot_env:
                     click.echo(f"{name}=\"{escape_char(parm.Value) if esc_quotes else parm.Value}\"")
                 elif tfvars:
-                    click.echo(f"{name} = \"{escape_char(parm.Value) if esc_quotes else parm.Value}\"")
+                    padding = get_padding(parm.Name, longest_name_length)
+                    click.echo(f"{name}{padding} = \"{escape_char(parm.Value) if esc_quotes else parm.Value}\"")
                 elif jetbrains_run_config:
                     click.echo(f"{name}={escape_char(parm.Value, ';')};")
             else:
@@ -124,6 +132,14 @@ def escape_char(string, char='"'):
         else:
             newstr += c
     return newstr
+
+
+def get_padding(name, required_length):
+    """
+    Returns the required amount of spaces for padding based on the length of the longest name (the length
+     of which is passed in the required_length parameter)
+    """
+    return " " * (required_length - len(name))
 
 
 @main.command("cp")
